@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <Compile Include="WebFlows.Log.fs" />
+    <Compile Include="Utils.fs" />
+    <Compile Include="Scripts.fs" />
+    <Compile Include="FlowTypes.fs" />
+    <Compile Include="FlowsJs.fs" />
+    <Compile Include="Flows.fs" />
+	<Compile Include="FlowDefs.fs" />    
+  </ItemGroup>
+	
+  <ItemGroup>
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
+    <PackageReference Include="System.Text.Json" Version="9.0.10" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.10" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.10" />	  
+  </ItemGroup>
+	
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="9.0.303" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>DriverAbstractions</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="FsPlay.Abstractions.fs" />
+  </ItemGroup>
+
+</Project>

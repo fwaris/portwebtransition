@@ -1,0 +1,46 @@
+{
+  // .vscode/launch.json
+  "version": "0.2.0",
+  "configurations": [
+    // ----- Attach-only configs -----
+    {
+      "name": "Attach MacCatalyst",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickProcess}",
+      "justMyCode": false
+    },
+    {
+      "name": "Attach iOS Simulator",
+      "type": "coreclr",
+      "request": "attach",
+      // iOS sim processes can be wrapped; picking explicitly is most reliable:
+      "processId": "${command:pickProcess}"
+    },
+    {
+      "name": "Attach Android",
+      "type": "coreclr",
+      "request": "attach",
+      // Usually matches your app/assembly name once the app is running:
+      "processId": "${command:pickProcess}"
+    }
+  ],
+  "compounds": [
+    // ----- Run task + immediate attach -----
+    {
+      "name": "Run + Debug MacCatalyst",
+      "configurations": ["Attach MacCatalyst"],
+      "preLaunchTask": "Run MAUI MacCatalyst" // must exist in tasks.json
+    },
+    {
+      "name": "Run + Debug iOS Simulator",
+      "configurations": ["Attach iOS Simulator"],
+      "preLaunchTask": "Run MAUI iOS Simulator"
+    },
+    {
+      "name": "Run + Debug Android",
+      "configurations": ["Attach Android"],
+      "preLaunchTask": "Run MAUI Android"
+    }
+  ]
+}

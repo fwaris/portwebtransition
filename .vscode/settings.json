@@ -1,0 +1,9 @@
+{
+    "cSpell.words": [
+        "Clickables",
+        "rslt"
+    ],
+    "[fsharp]": {
+        "editor.inlayHints.enabled": "off"
+    }
+}

@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="AICore.Log.fs" />
+        <Compile Include="Utils.fs" />
+        <Compile Include="Usage.fs" />
+        <Compile Include="Toolbox.fs" />
+        <Compile Include="AICore.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Anthropic.SDK" Version="5.8.0" />
+        <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
+        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.1.1-preview.1.25612.2" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.11" />
+        <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.67.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.11" />
+    </ItemGroup>
+</Project>
