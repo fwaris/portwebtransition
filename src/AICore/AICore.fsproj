@@ -10,6 +10,7 @@
         <Compile Include="Utils.fs" />
         <Compile Include="Usage.fs" />
         <Compile Include="Toolbox.fs" />
+        <Compile Include="Functions.fs" />
         <Compile Include="AICore.fs" />
     </ItemGroup>
 

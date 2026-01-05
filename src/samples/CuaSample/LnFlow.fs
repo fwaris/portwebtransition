@@ -1,9 +1,37 @@
 namespace FsPlaySamples.Cua.LnFlow
+
+open AICore
 open FsPlaySamples.Cua
 open System
 open System.ComponentModel
 open Microsoft.SemanticKernel
 
+type Target = Target of string
+
+type Cu_Task =
+    | Cu_Human of (Target option * string option)
+    | Cu_Cua  of (Target option)
+    
+module CuPlan =    
+    open FsPlan
+    let getOutput (t:FsTask<Cu_Task>) (kernel:IServiceProvider) = async {
+        return ""
+    }
+    
+    let tasks = [
+        {   id = Tid "intro"
+            task = Cu_Human (Some (Target "https://linkedin.com"),Some "Click play to start")
+            description = "introduction"
+            toolNames = []                       
+        }
+        {   id = Tid "find gen ai posts"
+            task = Cu_Cua None
+            description = "find gen ai posts and save the summaries to memory using save memory"
+            toolNames = [ToolName "save_memory"]                       
+        }               
+    ]
+    
+    let testPlan = FsPlan.Sequential 
 type ActionPreview = {click:(int*int) option; action:string}
          
 [<RequireQualifiedAccess>]
