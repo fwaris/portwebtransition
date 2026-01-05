@@ -24,7 +24,7 @@ type AIContext = {
     ///List of tools to use for the current invocation of the LLM call.
     tools:ToolName list
     
-    ///Tool implementations mapped to their names. Should have at least the tools for the the list in 'tools'.
+    ///Tool implementations mapped to their names. Should have at least the tools for the list in 'tools'.
     toolsCache:ToolCache
     
     ///Configure any non-tool option settings.

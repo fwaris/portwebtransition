@@ -1,4 +1,4 @@
-namespace FsPlaySamples.Cua.LnFlow
+namespace FsPlaySamples.Cua.Agentic
 
 open AICore
 open FsPlaySamples.Cua
@@ -22,34 +22,23 @@ module CuPlan =
         {   id = Tid "intro"
             task = Cu_Human (Some (Target "https://linkedin.com"),Some "Click play to start")
             description = "introduction"
-            toolNames = []                       
+            toolNames = []
         }
-        {   id = Tid "find gen ai posts"
+        {   id = Tid "find_gen_ai_posts"
             task = Cu_Cua None
-            description = "find gen ai posts and save the summaries to memory using save memory"
+            description = "find gen ai posts and save the summaries to memory using save_memory tool"
             toolNames = [ToolName "save_memory"]                       
         }               
     ]
     
-    let testPlan = FsPlan.Sequential 
-type ActionPreview = {click:(int*int) option; action:string}
-         
-[<RequireQualifiedAccess>]
-type RunTaskMessage =
-    | Summary of string
-    | Preview of ActionPreview
-    | PlanDone
+    let testPlan = tasks |> List.map _.id 
     
-type AgentMsg =
-    | Ag_Preview of ActionPreview
-    | Ag_
- 
-type FlowMsg =
-    | Fl_Start
-    | Fl_Terminate
+    
+    
+    
 
 
-type ArticleTools(poster: RunTaskMessage ->Async<unit>) = 
+type ArticleTools(poster: FromAgent ->Async<unit>) = 
 
     [<KernelFunction("save_summary")>]
     [<Description("Save the article summary")>]
@@ -57,14 +46,14 @@ type ArticleTools(poster: RunTaskMessage ->Async<unit>) =
         let comp = async {
             try
                 Log.info $"Summary {smry}"
-                do! poster (RunTaskMessage.Summary smry)
+                do! poster (FromAgent.Summary smry)
                 return "pin saved"
             with ex ->
                 Log.exn(ex, nameof this.save_summary)
                 return $"error occurred while trying to save summary"
         }
         Async.StartAsTask comp
-        
+
 
 module PortPlanMobile =
     ///Shortcut for string 'Contains'

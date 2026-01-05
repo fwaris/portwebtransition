@@ -1,4 +1,8 @@
 namespace AICore.Functions
+
+open System
+open System.IO
+open AICore
 open Microsoft.SemanticKernel
 open System.ComponentModel
 open System.Text.Json
@@ -7,11 +11,13 @@ open System.Text.Json
 Some generally applicable functions 
 *)
 
+module internal U =
+    let homePath = lazy(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
 
 ///semantic kernel 'plugin' class that implements memory functions
 type FsOpMemory() =
     let mutable bag = Map.empty
-    static member statefile = lazy(homePath.Value @@ "memory.json")
+    static member statefile = lazy(U.homePath.Value @@ "memory.json")
 
     static member serOpts = lazy(
         let opts = JsonSerializerOptions()

@@ -18,8 +18,8 @@
 		<!-- Display name -->
 		<ApplicationTitle>Port Web</ApplicationTitle>
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.PlanSelectionAssistant</ApplicationId>
-		<ApplicationIdGuid>5D26BACE-A3ED-4E42-ABDA-1B0C073F7764</ApplicationIdGuid>
+		<ApplicationId>com.companyname.fsplaysamples.cua</ApplicationId>
+		<ApplicationIdGuid>5D26BACE-A3ED-4E42-ABDA-1B0D073F7764</ApplicationIdGuid>
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
@@ -50,10 +50,12 @@
 		<!--  <Compile Include="Platforms\Windows\WebViewService_stub.fs" Condition=" '$(TargetPlatformIdentifier)' == 'windows' " /> -->
 		<Compile Include="Log.fs" />
 		<Compile Include="Constants.fs" />
-		<Compile Include="SettingsModel.fs" />
-		<Compile Include="LnFlow.fs" />
 		<Compile Include="Utils.fs" />
+		<Compile Include="SettingsModel.fs" />
 		<Compile Include="Icons.fs" />
+		<Compile Include="Agentic\Messages.fs" />
+		<Compile Include="Agentic\CuPlan.fs" />
+		<Compile Include="Agentic\AppAgent.fs" />
 		<Compile Include="Model\AppMsg.fs" />
 		<Compile Include="Model\Scripts.fs" />		
 		<Compile Include="Model\Model.fs" />
@@ -144,5 +146,6 @@
 	  <ProjectReference Include="..\..\RTFlow\RTFlow.fsproj" />
 	  <ProjectReference Include="..\..\WebFlows\WebFlows.fsproj" />
 	</ItemGroup>
+	
 	
 </Project>
