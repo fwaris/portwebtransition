@@ -1,10 +1,14 @@
 ﻿namespace FsPlaySamples.Cua
+
 open System
 open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
 open System.Text.Json.Serialization.Metadata
 open System.Security.Cryptography
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Maui.Controls
 
 type LogLevel = Verbose | Terse
 
@@ -109,3 +113,20 @@ module Utils =
             .WithAllowNullFields(true)
             .AddToJsonSerializerOptions(o)        
         o)
+    let configuration = lazy(
+        Application
+            .Current
+            .Handler
+            .MauiContext
+            .Services
+            .GetRequiredService<IConfiguration>();
+        )
+
+    let services = lazy(
+        Application
+            .Current
+            .Handler
+            .MauiContext
+            .Services
+        )
+

@@ -6,13 +6,39 @@ open System
 open System.ComponentModel
 open Microsoft.SemanticKernel
 
-type Target = Target of string
+type ArticleTools(poster: FromAgent -> unit) = 
 
-type Cu_Task =
-    | Cu_Human of (Target option * string option)
-    | Cu_Cua  of (Target option)
-    
-module CuPlan =    
+    [<KernelFunction("save_summary")>]
+    [<Description("Save the article summary")>]
+    member this.save_summary(smry:string) = 
+        let comp = async {
+            try
+                Log.info $"[ArticleTools] {nameof this.save_summary} {smry}"
+                poster (FromAgent.Summary smry)
+                return "summary saved"
+            with ex ->
+                Log.exn(ex, nameof this.save_summary)
+                return $"error occurred while trying to save summary"
+        }
+        Async.StartAsTask comp
+        
+type TaskTools(poster: AgentMsg -> unit) = 
+
+    [<KernelFunction("end_task")>]
+    [<Description("Ends the current task")>]
+    member this.end_task() = 
+        let comp = async {
+            try
+                Log.info $"[TaskTools] ending current task"
+                poster Ag_Task_End
+                return "ended task"
+            with ex ->
+                Log.exn(ex, nameof this.end_task)
+                return $"error occurred while trying to end task"
+        }
+        Async.StartAsTask comp
+
+module LnkPlan =    
     open FsPlan
     let getOutput (t:FsTask<Cu_Task>) (kernel:IServiceProvider) = async {
         return ""
@@ -20,7 +46,7 @@ module CuPlan =
     
     let tasks = [
         {   id = Tid "intro"
-            task = Cu_Human (Some (Target "https://linkedin.com"),Some "Click play to start")
+            task = Cu_Interactive (Some (Target "https://linkedin.com"),Some "Click play to start")
             description = "introduction"
             toolNames = []
         }
@@ -31,29 +57,13 @@ module CuPlan =
         }               
     ]
     
-    let testPlan = tasks |> List.map _.id 
-    
-    
-    
-    
-
-
-type ArticleTools(poster: FromAgent ->Async<unit>) = 
-
-    [<KernelFunction("save_summary")>]
-    [<Description("Save the article summary")>]
-    member this.save_summary(smry:string) = 
-        let comp = async {
-            try
-                Log.info $"Summary {smry}"
-                do! poster (FromAgent.Summary smry)
-                return "pin saved"
-            with ex ->
-                Log.exn(ex, nameof this.save_summary)
-                return $"error occurred while trying to save summary"
+    let testPlan =
+        {
+            tasks = tasks |> List.map (fun x ->x.id,x) |> Map.ofList
+            flow = FsPlanFlow.Sequential (tasks |> List.map _.id)
         }
-        Async.StartAsTask comp
 
+(*
 
 module PortPlanMobile =
     ///Shortcut for string 'Contains'
@@ -225,3 +235,4 @@ module PortInPlanRunMobile =
             | Choice2Of2 ex -> Log.exn(ex,"PortInPlanMobile.run")
         }
 
+*)

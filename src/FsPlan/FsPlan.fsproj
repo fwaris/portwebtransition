@@ -7,7 +7,7 @@
 
     <ItemGroup>
       <Compile Include="FsPlan.Log.fs" />
-      <Compile Include="Core.fs" />
+      <Compile Include="FsPlan.fs" />
     </ItemGroup>
 
     <ItemGroup>

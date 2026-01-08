@@ -54,8 +54,12 @@
 		<Compile Include="SettingsModel.fs" />
 		<Compile Include="Icons.fs" />
 		<Compile Include="Agentic\Messages.fs" />
-		<Compile Include="Agentic\CuPlan.fs" />
+		<Compile Include="Agentic\LnkPlan.fs" />
 		<Compile Include="Agentic\AppAgent.fs" />
+		<Compile Include="Agentic\InteractiveTaskAgent.fs" />
+		<Compile Include="Agentic\CuaTaskAgent.fs" />
+		<Compile Include="Agentic\PlanAgent.fs" />
+		<Compile Include="Agentic\Flow.fs" />
 		<Compile Include="Model\AppMsg.fs" />
 		<Compile Include="Model\Scripts.fs" />		
 		<Compile Include="Model\Model.fs" />
@@ -64,12 +68,9 @@
 		<Compile Include="Model\Update.fs" />
 		<Compile Include="Views/ViewExtensions.fs" />
 		<Compile Include="Views\SfExtensions.fs" />
-		<Compile Include="Views\StatsView.fs" />
 		<Compile Include="Views\CredsView.fs" />
 		<Compile Include="Views\PageView.fs" />		
-		<Compile Include="Views\DomView.fs" />		
-		<Compile Include="Views\AccountView.fs" />		
-		<Compile Include="Views\ValuesView.fs" />		
+		<Compile Include="Views\SummaryView.fs" />		
 		<Compile Include="App\App.fs" />
 		<Compile Include="App\MauiProgram.fs" />
 	</ItemGroup>

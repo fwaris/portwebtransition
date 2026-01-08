@@ -1,5 +1,6 @@
 namespace FsPlaySamples.Cua.Agentic
 open FSharp.Control
+open FsPlay.Abstractions
 open RTFlow
 open RTFlow.Functions
 
@@ -7,19 +8,20 @@ open RTFlow.Functions
 module AppAgent =
     type internal State = {
         poster : FromAgent -> unit//background messages
-        bus : WBus<FlowMsg,AgentMsg>     
+        bus : CuaBus
+        driver : IUIDriver
     }
         with member this.Send (msg:FromAgent) =  this.poster msg
     
     let internal update (st:State) msg = async {
         match msg with
-        | Ag_Action p ->  st.Send(FromAgent.Preview p)
+        | Ag_App_ComputerCall (callTypes,msg) -> ()// st.Send(FromAgent.Preview p)
         | _ -> ()
         return st
     }
 
-    let start poster (bus:WBus<FlowMsg, AgentMsg>) =
-        let st0 = {poster = poster; bus=bus}
+    let start (driver:IUIDriver) poster (bus: CuaBus) =
+        let st0 = {poster = poster; bus=bus; driver = driver}
         let channel = bus.agentChannel.Subscribe("app")
         channel.Reader.ReadAllAsync()
         |> AsyncSeq.ofAsyncEnum

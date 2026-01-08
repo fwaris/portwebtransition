@@ -49,7 +49,7 @@ module App =
         | NavigationRoute.Dom d -> AnyPage(Views.DomView.view nav appMsgDispatcher d)
         | NavigationRoute.Keys -> AnyPage(Views.CredsView.view nav appMsgDispatcher)
         | NavigationRoute.Values vs -> AnyPage(Views.ValuesView.view nav appMsgDispatcher vs)
-        | NavigationRoute.AccountInfo acct -> AnyPage(Views.AccountView.view nav appMsgDispatcher acct)
+        | NavigationRoute.AccountInfo acct -> AnyPage(Views.SummaryView.view nav appMsgDispatcher acct)
         | NavigationRoute.Stats hist -> AnyPage(Views.StatsView.view nav appMsgDispatcher hist)
 
     let view nav appMsgDispatcher () =

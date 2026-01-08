@@ -3,9 +3,11 @@ namespace AICore
 type Usage = {input_tokens:int; output_tokens:int; total_tokens:int}
     with
     static member Default = {input_tokens = 0; output_tokens=0; total_tokens = 0}
+    
+type UsageMap = Map<string,Usage>
 
 module Usage =
-    let combineUsage (a:Map<string,Usage>) (b:Map<string,Usage>) =
+    let combineUsage (a:UsageMap) (b:UsageMap) =
         (Map.toList a) @ (Map.toList b)
         |> List.groupBy fst
         |> List.map(fun (k,xs) ->

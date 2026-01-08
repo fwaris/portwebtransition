@@ -12,7 +12,7 @@ open FsPlaySamples.Cua.Navigation
 open FsPlaySamples.Cua
 open WebFlows
 
-module AccountView =
+module SummaryView =
     let private (!-) (a:string option) = a |> Option.defaultValue "" 
     type AcctModel = {accountInfo: ArticleSummary; isActive:bool}
     and AcctMsg = BackButtonPressed | Active | InActive | Nop of string

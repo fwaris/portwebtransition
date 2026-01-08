@@ -130,7 +130,7 @@ module PageView =
                     .textColor(Colors.Magenta)
                     .background(Colors.Transparent)
                     .gridRow(1)
-                Button(Icons.fa_user_pen,Nav ViewAccountInfo)
+                Button(Icons.fa_user_pen,Nav ViewSummary)
                     .font(size=20.0, fontFamily=C.FA)
                     .background(Colors.Transparent)
                     .textColor(Colors.Magenta)

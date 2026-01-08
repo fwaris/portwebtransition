@@ -5,8 +5,12 @@ type Path = {
     path : Point list
 }
 
+[<RequireQualifiedAccess>]
+type Button = Left | Right | Middle
+
+[<RequireQualifiedAccess>]
 type Action =
-    | Click of {| button:string; x:int; y:int|}
+    | Click of {| button:Button; x:int; y:int|}
     | Scroll of {|x:int; y:int; scroll_x:int; scroll_y:int|}
     | Keypress of {| keys:string list;|} //ctrl, alt, shift
     | Type of {| text:string|}

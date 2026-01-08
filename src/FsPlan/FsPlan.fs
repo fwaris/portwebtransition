@@ -23,20 +23,25 @@ type FsTransition = {
 
 type FsGraph = {root:Tid; transitions:Map<Tid,FsTransition>}
 
-type FsPlan =
+[<RequireQualifiedAccess>]
+type FsPlanFlow =
     | Sequential of Tid list
     | Graph of FsGraph
+    
+type FsPlan<'t> = {
+    tasks : Map<Tid,FsTask<'t>>
+    flow : FsPlanFlow
+}
     
 type Runner<'t,'o> =
     {
         context : AIContext
-        tasks : Map<Tid,FsTask<'t>>
-        plan  : FsPlan
+        plan  : FsPlan<'t>
+        runTask: FsTask<'t> -> AIContext -> Async<'o>
+        taskOutputForTransition: ('o -> string) option
+        metricsCollector : (Map<string,UsageDetails> -> unit) option
         completed : (Tid*'o) list
         current: Tid option
-        runTask: FsTask<'t> -> IServiceProvider -> Async<'o>
-        transitionOutput : 'o -> string
-        metricCollector : (Map<string,UsageDetails> -> unit) option
     }
     
 type TransitionPromptInput = {
@@ -78,36 +83,63 @@ module FsPlan =
         if missedTargets.Length > 0 then
             failwith $"No task found for the following targets {missedTargets}" 
             
-    let validate = function
-        | Sequential xs -> match findDuplicates xs with Some e -> failwith e | None -> ()
-        | Graph g -> //transitions to self allowed
+    let validateFlow  = function
+        | FsPlanFlow.Sequential xs -> match findDuplicates xs with Some e -> failwith e | None -> ()
+        | FsPlanFlow.Graph g -> //transitions to self allowed
             let transitions = (Map.toList g.transitions |> List.map snd)
             ensureUniqueTargets transitions
             ensureValidTargets g transitions
+            if Map.containsKey g.root g.transitions |> not then failwith $"root id '{g.root}' not found in flow graph"
             
-            
+    let allFlowIds = function
+        | FsPlanFlow.Sequential xs -> set xs
+        | FsPlanFlow.Graph g ->
+                let rec loop acc xs =
+                    match xs with
+                    | [] -> acc
+                    | x::rest -> loop (Set.union acc (set x)) rest
+                loop (set [g.root]) (g.transitions |> Map.toList |> List.map snd |> List.map (fun txn -> txn.tid::txn.targetTids))
+                
+    let validateTaskIds (plan:FsPlan<_>) = 
+        let allFlowTids = allFlowIds plan.flow
+        let allTasksIds = plan.tasks |> Map.toList |> List.map fst |> set
+        let notInFlow = Set.difference allTasksIds allFlowTids
+        let notInTask = Set.difference allFlowTids allTasksIds
+        if notInFlow.Count > 0 then
+            failwith $"The following task ids are not referenced in the flow {notInFlow}"
+        if notInTask.Count > 0 then
+            failwith $"The following task ids are not referenced in the flow {notInFlow}"
+
+    let validatePlan (plan:FsPlan<_>) =
+        validateFlow plan.flow
+        validateTaskIds plan
+                        
     let private transitionNextSeq runner xs =
         match runner.completed with
         | [] -> List.tryHead xs
         | (x,_)::_ -> xs |> List.skipWhile (fun y -> y <> x) |> List.tryHead
         
-    let inline internal jumpFrom runner (srcTid,output) (g:FsGraph)= async {
-        let outStr = runner.transitionOutput output
+    let inline internal jumpFrom (runner:Runner<_,_>) (srcTid,output) (g:FsGraph)= async {
+        let outStr =
+            match runner.taskOutputForTransition with
+            | Some f -> f output
+            | None ->
+                let serOpts = runner.context.jsonSerializationOptions |> Option.defaultValue openAIResponseSerOpts
+                JsonSerializer.Serialize(output,options=serOpts)
         match g.transitions |> Map.tryFind srcTid with 
         | None -> return None //no transitions from last completed state
         | Some txn when txn.targetTids.IsEmpty -> return None
         | Some txn ->
             let data = {
                  taskOutput = outStr
-                 targets = txn.targetTids |> List.map (fun id -> {|id=id.id; description=runner.tasks.[id].description|})   
+                 targets = txn.targetTids |> List.map (fun id -> {|id=id.id; description=runner.plan.tasks.[id].description|})   
             }            
             let msgs = seq  {
                 ChatMessage(role = ChatRole.System, content= txn.prompt)
                 ChatMessage(role = ChatRole.User, content = JsonSerializer.Serialize(data))                
             }
-            let ctx = {runner.context with tools = txn.toolNames}
-            let! resp,usage = AIUtils.sendRequest<TransitionPromptOutput> 2 ctx msgs
-            runner.metricCollector |> Option.iter(fun x -> x usage)
+            let! resp,usage = AIUtils.sendRequest<TransitionPromptOutput> 2 runner.context txn.toolNames msgs
+            runner.metricsCollector |> Option.iter(fun x -> x usage)
             let targetTid = resp.id |> checkEmpty |> Option.map Tid
             match targetTid with
             | None -> Log.info $"No transition output from {txn.tid}"
@@ -123,18 +155,41 @@ module FsPlan =
                     
     let transition runner = async {
         let! tid = 
-            match runner.plan with
-            | Sequential xs -> async {return transitionNextSeq runner xs}
-            | Graph graph -> transitionGraph runner graph
+            match runner.plan.flow with
+            | FsPlanFlow.Sequential xs -> async {return transitionNextSeq runner xs}
+            | FsPlanFlow.Graph graph -> transitionGraph runner graph
         return {runner with current = tid}
     }
     
-    let runTask runner = async {
+    let runTask<'t,'o> (runner:Runner<'t,'o>) = async {
         match runner.current with
         | Some tid ->
-            let t = runner.tasks.[tid]
-            let! o = runner.runTask t runner.context.kernel
-            let runner = {runner with completed = (o,tid)::runner.completed}
+            let t = runner.plan.tasks.[tid]
+            let! o = runner.runTask t runner.context
+            let runner = {runner with completed = (tid,o)::runner.completed}
             return! transition runner
         | None -> return runner
     }
+
+    ///next task(s), if any, that runner can transition to, from current state
+    let peekNextTasks (runner:Runner<_,_>) =
+        match runner.plan.flow with
+        | FsPlanFlow.Sequential xs -> [transitionNextSeq runner xs] |> List.choose id |> set
+        | FsPlanFlow.Graph g ->
+            match runner.completed with
+            | [] -> set [g.root]
+            | x::_ -> Map.tryFind (fst x) g.transitions
+                      |> Option.map (fun txns -> txns.targetTids |> set)
+                      |> Option.defaultValue Set.empty                      
+    
+    let createRunner context plan taskRunner =
+        validatePlan plan
+        {
+            context = context
+            runTask = taskRunner
+            plan = plan
+            taskOutputForTransition = None
+            metricsCollector = None
+            completed = []
+            current = None
+        }

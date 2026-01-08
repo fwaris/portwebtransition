@@ -2,6 +2,8 @@
 open System
 open System.Threading
 open Fabulous
+open FsPlan
+open FsPlaySamples.Cua.Agentic
 open WebFlows
 open Microsoft.Maui.ApplicationModel
 open RTFlow
@@ -53,27 +55,6 @@ type RunResult = {
                             captured = CaptureValues.Default
                         }
 
-[<ReferenceEquality>]
-type RunState = {
-    cancelTokenSource : CancellationTokenSource
-    config  : PlanConfig
-    runs    : int
-    status  : RunStatus
-    stepper : StepperHolder
-    currentResult : RunResult
-    results : RunResult list
-}
-    with static member Default =
-                        {
-                            cancelTokenSource = new CancellationTokenSource()
-                            config = PlanConfig.Default
-                            runs = 0
-                            status = Init
-                            stepper = StepperHolder()
-                            currentResult = RunResult.Default
-                            results = []
-                        }
-
 type ArticleSummary =
     {
        Summary       : string option
@@ -87,24 +68,19 @@ type Model =
     {
         mailbox         : System.Threading.Channels.Channel<Msg> //background messages
         settings        : Settings.SettingsModel        
-        log             : string list
         isActive        : bool
-        conversation    : string list
         item            : string
-        dom             : string
         highlight       : ClickableElement option
         pointer         : (int*int) option
         action          : string option
-        clickables      : CDomSnapshot
         fontSize        : float
-        flowRun         : FlowRun
         stepping        : bool
- 
-        accountInfo     : ArticleSummary
+        summary         : ArticleSummary
         isOpenSettings  : bool
         isOpenNavBar    : bool
         runSteps        : int
-        runState        : RunState option
+        flow            : IFlow<FlowMsg,AgentMsg> option
+        usage           : AICore.UsageMap
     }
 
 and Msg =
@@ -136,7 +112,7 @@ and Msg =
     | Nav of Msg
     | MenuSelect of int
     | ViewValues
-    | ViewAccountInfo
+    | ViewSummary
     | ViewStats
     | GetValues
     | GotValues of Map<string,string>
@@ -154,7 +130,7 @@ and Msg =
     | PreviewClear
     | UpdateData
     | WebviewInteraction of FsPlay.WvEvent
-    | FromRunningTask of RunTaskMessage
+    | FromRunningTask of FromAgent
 
 module Model =
     open System.Threading
@@ -199,8 +175,18 @@ module Model =
         let d = Settings.Environment.url() |> isEmpty
         (a || b || c || d) |> not
         
-    let startPlan cancelToken cfg waitForPreview poster stepper =        
-        FlowValidator.Anthropic.Client.ApiKeyProvider <- lazy(Settings.Environment.apiKey())
-        PortInPlanRunMobile.run cancelToken waitForPreview poster stepper cfg |> Async.Start
-        
+    let rec startPlan cancelToken cfg waitForPreview poster stepper =
+        let iflow,bus = Agentic.StateMachine.create poster
+        let cfg = Utils.configuration.Value
+        cfg.[AICore.ConfigKeys.ANTHROPIC_API_KEY] <- Settings.Environment.apiKey()
+        let context : AICore.AIContext = {
+            backend = AICore.AIBackend.AnthropicLike
+            kernel = Utils.services.Value
+            jsonSerializationOptions = None
+            toolsCache =  AICore.Toolbox.makeTools None [ Agentic.ArticleTools(poster) ]
+            optionsConfigurator = None            
+        }
+        let taskRunner = PlanAgent.taskRunner (0,0) bus 
+        let runner : FsPlan.Runner<Cu_Task,Cu_Task_Output> = FsPlan.createRunner context LnkPlan.testPlan taskRunner
+        iflow.PostToAgent (Ag_Plan_Run runner)
         

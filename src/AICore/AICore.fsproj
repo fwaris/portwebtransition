@@ -13,6 +13,7 @@
         <Compile Include="Functions.fs" />
         <Compile Include="AICore.fs" />
         <Compile Include="Action.fs" />
+        <Compile Include="AnthropicTools.fs" />
     </ItemGroup>
 
     <ItemGroup>

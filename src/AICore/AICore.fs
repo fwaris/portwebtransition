@@ -19,18 +19,23 @@ type AIContext = {
     backend:AIBackend
     
     ///Required services: IChatClient, IConfiguration (see ConfigKeys for expected key names, depending on backends used).   
-    kernel:IServiceProvider  
+    kernel:IServiceProvider
     
-    ///List of tools to use for the current invocation of the LLM call.
-    tools:ToolName list
-    
+    jsonSerializationOptions : JsonSerializerOptions option
+        
     ///Tool implementations mapped to their names. Should have at least the tools for the list in 'tools'.
     toolsCache:ToolCache
     
     ///Configure any non-tool option settings.
     optionsConfigurator : (ChatOptions -> unit) option
 }
-    with static member Create k = {kernel=k; backend=OpenAILike; tools=[]; toolsCache=Map.empty; optionsConfigurator = None}
+    with static member Default = {
+                kernel=null
+                backend=OpenAILike
+                jsonSerializationOptions = None
+                toolsCache=Map.empty
+                optionsConfigurator = None
+    }
 
 module AnthropicClient = 
     open Anthropic.SDK
@@ -130,13 +135,13 @@ module AIUtils =
 
     /// Sends a request to backend LLM with retry but without automated tool calling.
     /// Returns the raw LLM response (which may be tool call).
-    let rec sendRequestBase retries (context:AIContext) (history : ChatMessage seq)= async {
+    let rec sendRequestBase (retries:int) (context:AIContext) (tools:ToolName list)  (history : ChatMessage seq)= async {
         try
             let cfg = context.kernel.GetRequiredService<IConfiguration>()
             let opts = ChatOptions()           
             opts.Temperature <- 0.2f
             context.optionsConfigurator |> Option.iter(fun f -> f opts)            
-            opts.Tools <- context.toolsCache |> Toolbox.filter (Some context.tools) |> Map.toSeq |> Seq.map snd |> ResizeArray
+            opts.Tools <- context.toolsCache |> Toolbox.filter (Some tools)|> Map.toSeq |> Seq.map snd |> ResizeArray
             let client =
                 if context.backend.IsAnthropicLike then 
                     opts.ModelId <- cfg.[ConfigKeys.CHAT_MODEL_ID]
@@ -148,21 +153,21 @@ module AIUtils =
         with ex ->
             if retries <= 0 then
                 do! Async.Sleep 1000
-                return! sendRequestBase (retries-1) context history
+                return! sendRequestBase (retries-1) context tools history
             else
                 Log.exn(ex,"sendRequest")
                 return raise ex
     }    
     
     ///Sends a request to backend LLM with - automated tool calling and retries - to obtain a structured response.   
-    let rec sendRequest<'ResponseFormat> retries (context:AIContext) (history : ChatMessage seq)= async {
+    let rec sendRequest<'ResponseFormat> (retries:int) (context:AIContext) (tools:ToolName list)  (history : ChatMessage seq)= async {
         try
             let cfg = context.kernel.GetRequiredService<IConfiguration>()
             let opts = ChatOptions()
             opts.Temperature <- 0.2f
             context.optionsConfigurator |> Option.iter(fun f -> f opts)            
             opts.ToolMode <- ChatToolMode.Auto
-            opts.Tools <- context.toolsCache |> Toolbox.filter (Some context.tools) |> Map.toSeq |> Seq.map snd |> ResizeArray
+            opts.Tools <- context.toolsCache |> Toolbox.filter (Some tools) |> Map.toSeq |> Seq.map snd |> ResizeArray
             opts.ResponseFormat <- ChatResponseFormat.ForJsonSchema(AIJsonUtilities.CreateJsonSchema typeof<'ResponseFormat>)
             let client =
                 if context.backend.IsAnthropicLike then 
@@ -184,7 +189,7 @@ module AIUtils =
         with ex ->
             if retries <= 0 then
                 do! Async.Sleep 1000
-                return! sendRequest (retries-1) context history
+                return! sendRequest (retries-1) context tools history
             else
                 Log.exn(ex,"sendRequest")
                 return raise ex
