@@ -2,14 +2,21 @@ namespace FsPlaySamples.Cua
 
 open System
 open System.IO
-open System.Text.Json
+open Fabulous
 open FsPlan
 open FsPlaySamples.Cua.Agentic
-open Microsoft.Maui.ApplicationModel
 open Microsoft.Maui.Storage
-open WebFlows
 
 module UiOps =
+    let playIcon (m:Model) =
+        m.flow
+        |> Option.map(fun r -> Icons.fa_stop)
+        |> Option.defaultValue Icons.fa_play
+        
+    let playMsg (m:Model) =
+        m.flow
+        |> Option.map(fun r -> StopFlow)
+        |> Option.defaultValue StartFlow        
         
     let postMsgDelayed model msg = async {
         do! Async.Sleep 1000
@@ -24,7 +31,11 @@ module UiOps =
             {m with flow=None}
         with ex ->
             Log.exn(ex,"planDone")
-            m    
+            m
+            
+    let loadTask model (t,d) =
+        model,Cmd.none
+        
     
     let saveDom (dom:string) =
         let path = FileSystem.Current.AppDataDirectory @@ "dom.html"
@@ -49,7 +60,7 @@ module UiOps =
             wv.Navigated.Add(fun _ ->
                 async {
                     do! Async.Sleep 1000
-                    model.mailbox.Writer.TryWrite GetValues |> ignore    
+                    model.mailbox.Writer.TryWrite Nop |> ignore    
                 }
                 |> Async.Start))
 

@@ -3,17 +3,14 @@ namespace  FsPlaySamples.Cua.Navigation
 open System.Diagnostics.Metrics
 open Fabulous
 open FsPlaySamples.Cua
-open WebFlows
 
 /// This is the centerpiece of navigating through paths:
 /// A single enum regrouping all the navigation routes with their arguments
 [<RequireQualifiedAccess>]
 type NavigationRoute =
     | Main
-    | Dom of ClickableElement list
     | Keys
-    | Values of Map<string,string>
-    | AccountInfo of ArticleSummary
+    | ArticleSummary of ArticleSummary
     | Stats of Chart list
 
 /// The NavigationController is used to notify the intention to navigate to a new page (or go back).
@@ -38,17 +35,12 @@ module Navigation =
 
     let navigateToMain nav = navigateTo nav NavigationRoute.Main
 
-    let navigateToDom nav dom =
-        navigateTo nav (NavigationRoute.Dom dom)
-        
+
     let navigateToSettings nav =
         navigateTo nav (NavigationRoute.Keys)
-
-    let navigateToValues nav values =
-        navigateTo nav (NavigationRoute.Values values)
         
     let navigateToAccountInfo nav acctInfo =
-        navigateTo nav (NavigationRoute.AccountInfo acctInfo)
+        navigateTo nav (NavigationRoute.ArticleSummary acctInfo)
 
     let navigateToStats nav histogram =
         navigateTo nav (NavigationRoute.Stats histogram)

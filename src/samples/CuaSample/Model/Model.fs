@@ -1,11 +1,7 @@
 ﻿namespace FsPlaySamples.Cua
-open System
-open System.Threading
 open Fabulous
 open FsPlan
 open FsPlaySamples.Cua.Agentic
-open WebFlows
-open Microsoft.Maui.ApplicationModel
 open RTFlow
 
 exception InputKeyExn
@@ -30,30 +26,8 @@ type Chart = {
 
 type WebviewScroll = {x:float; y:float;}
 
-type CDomSnapshot = CParsed of DomSnapshot | CRaw of string | CNone
-
-type Highlighted = {element:ElemRef; x:float; y:float; width:float; height:float}
 
 type RunStatus = Init | Stepping | Running | Finished
-
-type CaptureValues = {account:string option; zip:string option; transfer_pin:string option}
-    with static member Default = {account=None; zip=None; transfer_pin=None}
-
-type RunResult = {
-    start_ts : DateTime
-    end_ts   : DateTime option
-    errors   : int
-    usage    : Map<string,AICore.Usage>
-    captured : CaptureValues    
-}
-    with static member Default =
-                        {
-                            start_ts = DateTime.Now
-                            end_ts = None
-                            errors = 0
-                            usage = Map.empty
-                            captured = CaptureValues.Default
-                        }
 
 type ArticleSummary =
     {
@@ -69,11 +43,9 @@ type Model =
         mailbox         : System.Threading.Channels.Channel<Msg> //background messages
         settings        : Settings.SettingsModel        
         isActive        : bool
-        item            : string
-        highlight       : ClickableElement option
+        item            : string        
         pointer         : (int*int) option
         action          : string option
-        fontSize        : float
         stepping        : bool
         summary         : ArticleSummary
         isOpenSettings  : bool
@@ -81,54 +53,28 @@ type Model =
         runSteps        : int
         flow            : IFlow<FlowMsg,AgentMsg> option
         usage           : AICore.UsageMap
+        lastError       : string option
     }
 
 and Msg =
+    | StartFlow
+    | StopFlow
     | EventError of exn        
-    | Cn_StartStop of unit
-    | CheckStepped of bool
     | CheckPreview of bool
-    | RunSteps of float
-    | ViewDom    
-    | Log_Append of string
-    | Log_Clear
     | Nop
-    | RunFlow
-    | StepFlow
-    | PauseFlow
-    | SteppedFlow of FlowRun
-    | StepError of exn
     | ToggleSettings
     | ToggleNavBar
-    | ResetFlow
-    | Highlight 
-    | GetDom
     | Init
     | PostInit
-    | SetDom of string* CDomSnapshot
-    | SetHighlight of ClickableElement option
-    | ClickAbleTest
     | ViewCreds
     | Nav of Msg
     | MenuSelect of int
-    | ViewValues
     | ViewSummary
     | ViewStats
-    | GetValues
-    | GotValues of Map<string,string>
     | Active
     | InActive
     | BackButtonPressed
-    | InputKey of exn
-    | ItemStarted
-    | ItemAdded of string
-    | SubmitCode
-    | SetQuery of string
-    | SetConsult of string
-    | FontLarger
-    | FontSmaller
     | PreviewClear
-    | UpdateData
     | WebviewInteraction of FsPlay.WvEvent
     | FromRunningTask of FromAgent
 
@@ -139,31 +85,6 @@ module Model =
     let webviewCache = ViewRef<Microsoft.Maui.Controls.WebView>()
     
     let webviewWrapper = lazy(FsPlay.Service.createWebViewWrapper(webviewCache.Value))
-    
-    let driver = lazy(
-        let wv = webviewCache.TryValue |> Option.defaultWith (fun _ -> let m = "webview not ready" in Log.error m; failwith m)
-        {new IMobileDriver with
-            member this.evaluateJs (js:string) = async {
-                let f() = wv.EvaluateJavaScriptAsync(js)
-                let! rslt = MainThread.InvokeOnMainThreadAsync<string>(f) |> Async.AwaitTask
-                return rslt
-            }
-            
-            member this.goBack() =
-                this.evaluateJs("history.back()")
-                |> Async.Ignore
-           
-            member this.goto url = async {
-                use h = new ManualResetEvent(false)
-                let dlg = EventHandler<WebNavigatedEventArgs>(fun _  _ -> h.Set() |> ignore)
-                wv.Navigated.AddHandler dlg
-                let f() = wv.Source <- url
-                do! MainThread.InvokeOnMainThreadAsync<unit>(f) |> Async.AwaitTask
-                let! _ = Async.AwaitWaitHandle(h,2000)
-                wv.Navigated.RemoveHandler dlg
-            }
-        }        
-    )
     
     let postInit() =
         FsPlay.MauiWebViewDriver.initialize(webviewWrapper.Value)

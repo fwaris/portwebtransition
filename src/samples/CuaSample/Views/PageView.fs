@@ -11,7 +11,6 @@ open type Fabulous.Context
 open Microsoft.Maui.Layouts
 open FsPlaySamples.Cua
 open FsPlaySamples.Cua.Navigation
-open WebFlows
 
 module PageView =
     
@@ -74,17 +73,10 @@ module PageView =
         Program.statefulWithCmd Update.initModel (Update.update nav)
         |> Program.withSubscription(subscriptions appMsgDispatcher)
 
-    let headerView (model:Model) =
+    let headerView (model:Model) :WidgetBuilder<Msg,IFabGrid> =
         (Grid([Dimension.Star; Dimension.Star;],[Dimension.Absolute 50.0]) {
             (HStack(){
-                Button(Icons.fa_step, StepFlow)
-                    .isEnabled(UiOps.canStep model)
-                    .font(size=20.0, fontFamily=C.FA)
-                    .background(Colors.Transparent)
-                    .centerVertical()
-                    .alignStartHorizontal()
                 Button(UiOps.playIcon model, UiOps.playMsg model)
-                    .isEnabled(UiOps.canPlayOrPause model)
                     .font(size=20.0, fontFamily=C.FA)
                     .background(Colors.Transparent)
                     .centerVertical()
@@ -98,7 +90,6 @@ module PageView =
                 .alignStartHorizontal()
                 .gridColumn(0)               
             (HStack(){
-                Label($"Runs: {UiOps.runCount model}").centerVertical()
                 Button(Icons.settings,ToggleSettings)
                     .font(size=20.0, fontFamily=C.FONT_SYMBOLS)
                     .background(Colors.Transparent)
@@ -119,7 +110,7 @@ module PageView =
             .gridRow(0)
             .background(Colors.LightGray)
             .gridColumnSpan(2)
-            .margin(3,0,3,0)
+            .margin(3,0,3,0)       
            
     let navBar (m:Model) =
         (VStack() {
@@ -140,11 +131,7 @@ module PageView =
                      .background(Colors.Transparent)
                      .textColor(Colors.Magenta)
                      .gridRow(3)
-                Button(Icons.fa_reset, Nav ResetFlow)
-                     .font(size=20.0, fontFamily=C.FA)
-                     .background(Colors.Transparent)
-                     .textColor(Colors.Magenta)
-                     .gridRow(4)
+
             }
         })
             .background(Colors.LightGray)
@@ -181,18 +168,6 @@ module PageView =
             (Browser.view())
                 .layoutBounds(0.,0.,1.,1.)
                 .layoutFlags(AbsoluteLayoutFlags.All)
-            match model.highlight, Model.webviewCache.TryValue with
-            | None,_ -> ()
-            | _, None -> ()
-            | Some h,Some wv->
-                Border(
-                    Label("")
-                     .inputTransparent(true)
-                )
-                    .inputTransparent(true)
-                    .stroke(Colors.Red)
-                    .strokeThickness(3.0)
-                    .layoutBounds(h.x,h.y,h.width,h.height)
             match model.pointer, Model.webviewCache.TryValue with
             | None,_ -> ()
             | _, None -> ()
@@ -226,12 +201,7 @@ module PageView =
                         Label("Preview Clicks").gridRow(0).margin(10)
                         (CheckBox(model.settings.PreviewClicks,CheckPreview))
                                 .gridRow(0).gridColumn(1).margin(10)
-                                .isEnabled(model.runState.IsNone)
                         Label("Run Count:").gridRow(1).margin(10)
-                        (VStack(spacing=5) {
-                           Entry(string model.runSteps,UiOps.toRunSteps >> RunSteps)
-                           Stepper(1,100,model.runSteps,RunSteps)                            
-                        }).gridRow(1).gridColumn(1).margin(10)                        
                     }).margin(5.)
                 })
                     .background(SolidColorBrush Colors.LightGray)
@@ -248,13 +218,12 @@ module PageView =
         Component("Main") {
             let! settings = EnvironmentObject Settings.Environment.settingsKey
             let! model = Context.Mvu(program nav appMsgDispatcher,settings)
-            let shouldRenderPopup = model.isOpenSettings //|| popupRenderActive
             let page =
                 ContentPage(
                     (Grid([Dimension.Star],[Dimension.Absolute 53.0; Dimension.Star]) {
-                        controlsView model
-                        headerView model //needed for android
-                        if shouldRenderPopup then popup model
+                        //controlsView model
+                        //headerView model //needed for android
+                        if model.isOpenSettings then popup model
                         if model.isOpenNavBar then navBar model
                     })
                         .margin(5.)

@@ -27,7 +27,7 @@ type MauiProgram =
                 |> ignore
 #endif 
 #if WINDOWS 
-                failwith "platform not supproted"
+                failwith "platform not supported"
 #endif
              )
             .ConfigureFonts(fun fonts ->
@@ -40,8 +40,7 @@ type MauiProgram =
                     .AddFont("NotoSansSymbols2-Regular.ttf", C.FAreg)
                 
                 |> ignore)
-            .Configuration.AddEnvironmentVariables()
-                |> ignore
+            .Configuration.AddEnvironmentVariables() |> ignore
         builder.Services.AddLogging(fun x ->
             x.AddConsole() |> ignore
             x.AddFilter("RTOpenAILog", LogLevel.Information) |> ignore

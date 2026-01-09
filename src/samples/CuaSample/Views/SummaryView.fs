@@ -1,24 +1,21 @@
 namespace FsPlaySamples.Cua.Views
 
-open System
-open System.Threading.Channels
 open FSharp.Control
 open Fabulous
 open Fabulous.Maui
-open Microsoft.Maui.Graphics
 open type Fabulous.Maui.View
 open type Fabulous.Context
 open FsPlaySamples.Cua.Navigation
 open FsPlaySamples.Cua
-open WebFlows
+
 
 module SummaryView =
     let private (!-) (a:string option) = a |> Option.defaultValue "" 
-    type AcctModel = {accountInfo: ArticleSummary; isActive:bool}
+    type AcctModel = { articleSummary: ArticleSummary; isActive:bool}
     and AcctMsg = BackButtonPressed | Active | InActive | Nop of string
     
     let init acctInfo =
-        { accountInfo=acctInfo; isActive=false;}, Cmd.none        
+        { articleSummary=acctInfo; isActive=false;}, Cmd.none        
 
     let update nav msg (model: AcctModel) =
         match msg with
@@ -46,20 +43,14 @@ module SummaryView =
         Program.statefulWithCmd init (update nav)
         |> Program.withSubscription(subscriptions appMsgDispatcher)
 
-    let view nav appMsDispatcher accountInfo =
+    let view nav appMsDispatcher articleSummary =
         Component("Data") {            
-            let! model = Context.Mvu(program nav appMsDispatcher, accountInfo)            
+            let! model = Context.Mvu(program nav appMsDispatcher, articleSummary)            
             (ContentPage(                
                 (Grid([Dimension.Absolute 150; Dimension.Star],
-                     [Dimension.Absolute 50.0; Dimension.Absolute 50; Dimension.Absolute 50; Dimension.Star]) {
-                    Label("Account Number:").gridColumn(0).gridRow(0)
-                    Label(!- model.accountInfo.AccountNumber).gridColumn(1).gridRow(0)
-                    Label("Billing Zip:").gridColumn(0).gridRow(1)
-                    Label(!- model.accountInfo.BillingZip).gridColumn(1).gridRow(1)
-                    Label("Transfer Pin:").gridColumn(0).gridRow(2)
-                    Label(!- model.accountInfo.TransferPin).gridColumn(1).gridRow(2)
-                    Label("Bill:").gridColumn(0).gridRow(3)
-                    Label(string model.accountInfo.Bill).gridColumn(1).gridRow(3)
+                     [Dimension.Star]) {
+                    Label("Summary:").gridColumn(0).gridRow(0)
+                    Label(!- model.articleSummary.Summary).gridColumn(1).gridRow(0)
                 }).margin(5)                
                 ).padding(5.)
                     

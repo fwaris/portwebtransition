@@ -33,6 +33,7 @@ type FsPlan<'t> = {
     flow : FsPlanFlow
 }
     
+[<ReferenceEquality>]
 type Runner<'t,'o> =
     {
         context : AIContext

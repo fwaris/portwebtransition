@@ -37,7 +37,8 @@ module InteractiveTaskAgent =
                 state.bus.PostToAgent(Ag_App_Load(target,desc))
                 return {state with task = Some t}
             | Ag_Task_End when state.task.IsSome ->
-                Log.info $"[InteractiveTaskAgent] task ended"                 
+                Log.info $"[InteractiveTaskAgent] task ended"
+                state.bus.PostToAgent(Ag_Plan_DoneTask {history=[]; status=Done; usage=Map.empty})
                 return {state with task=None}                
             | _ -> return state
         }

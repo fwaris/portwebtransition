@@ -71,6 +71,7 @@
 		<Compile Include="Views\CredsView.fs" />
 		<Compile Include="Views\PageView.fs" />		
 		<Compile Include="Views\SummaryView.fs" />		
+		<Compile Include="Views\StatsView.fs" />		
 		<Compile Include="App\App.fs" />
 		<Compile Include="App\MauiProgram.fs" />
 	</ItemGroup>
@@ -124,7 +125,10 @@
 	<ItemGroup>
 		<PackageReference Include="Fabulous.MauiControls" Version="9.0.0-pre9" />
 		<PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.11" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.120" />
 		<PackageReference Include="Microsoft.SemanticKernel" Version="1.66.0" />
@@ -133,7 +137,7 @@
 		<PackageReference Include="System.Net.Primitives" Version="4.3.1" />
 		<PackageReference Include="System.Net.Security" Version="4.3.2" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
-		<PackageReference Include="System.Text.Json" Version="9.0.10" />
+		<PackageReference Include="System.Text.Json" Version="9.0.11" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
 		<PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
 		<PackageReference Include="FSharp.Core" Version="9.0.303" />
@@ -145,7 +149,6 @@
 	  <ProjectReference Include="..\..\FsPlan\FsPlan.fsproj" />
 	  <ProjectReference Include="..\..\FsPlay\FsPlay.fsproj" Condition=" '$(TargetPlatformIdentifier)' != 'windows' " />
 	  <ProjectReference Include="..\..\RTFlow\RTFlow.fsproj" />
-	  <ProjectReference Include="..\..\WebFlows\WebFlows.fsproj" />
 	</ItemGroup>
 	
 	
