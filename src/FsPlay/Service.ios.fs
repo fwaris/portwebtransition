@@ -80,11 +80,10 @@ type CreateHandler() =
     override this.ConnectHandler (platformView: WKWebView): unit =
         base.ConnectHandler(platformView)
         
-
        
-type WebViewService() =
+module internal Service =
     
-    let capture2 (wv:WKWebView) : Task<byte[]*(int*int)*string> = task {
+    let private capture2 (wv:WKWebView) : Task<byte[]*(int*int)*string> = task {
         try
             UIGraphics.BeginImageContextWithOptions(wv.Bounds.Size, false, 1.0f);
             let r = wv.DrawViewHierarchy(wv.Bounds, afterScreenUpdates = true)
@@ -97,7 +96,13 @@ type WebViewService() =
             return raise ex            
     }
     
-    let capture (wv:WKWebView) = 
+    let private dimensions (wv:WKWebView) : Task<int*int> = task {
+        let sz = wv.Bounds.Size
+        return (sz.Width.Value |> int, sz.Height.Value |> int)
+    }
+        
+    //alt method
+    let private capture_ (wv:WKWebView) = 
         task {
             try
                 let sz = wv.Bounds
@@ -110,21 +115,32 @@ type WebViewService() =
                 System.Diagnostics.Debug.WriteLine(ex.Message)
                 return raise ex
         }
-
-    interface IWebViewService with         
-        member _.Capture(wv:WebView) : Task<byte[]*(int*int)*string> = 
-            task {    
-                match wv.Handler with
-                | null -> return failwith "not ready"
-                | h -> 
-                    match h.PlatformView with 
-                    | :? WKWebView as wv ->
-                        do! MainThread.InvokeOnMainThreadAsync(wv.LayoutIfNeeded)
-                        let f() = capture2 wv
-                        let! data = MainThread.InvokeOnMainThreadAsync<byte[]*(int*int)*string>(f)
-                        return data
-                    | _ -> return failwith "webview not ready"
-            }
+    
+    let internal currentDimensions(wv:WebView) : Task<int*int> =task {
+          match wv.Handler with
+            | null -> return failwith "not ready"
+            | h -> 
+                match h.PlatformView with 
+                | :? WKWebView as wv ->
+                    do! MainThread.InvokeOnMainThreadAsync(wv.LayoutIfNeeded)
+                    let f() = dimensions(wv)
+                    let! data = MainThread.InvokeOnMainThreadAsync<int*int>(f)
+                    return data
+                | _ -> return failwith "webview not ready"                
+        }
+        
+    let internal capture(wv:WebView) : Task<byte[]*(int*int)*string> = task {    
+            match wv.Handler with
+            | null -> return failwith "not ready"
+            | h -> 
+                match h.PlatformView with 
+                | :? WKWebView as wv ->
+                    do! MainThread.InvokeOnMainThreadAsync(wv.LayoutIfNeeded)
+                    let f() = capture2 wv
+                    let! data = MainThread.InvokeOnMainThreadAsync<byte[]*(int*int)*string>(f)
+                    return data
+                | _ -> return failwith "webview not ready"
+        }
           
 #endif
 

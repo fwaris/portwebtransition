@@ -1,5 +1,6 @@
 namespace FsPlaySamples.Cua.Agentic
 open System.Threading
+open AICore
 open FsPlay.Abstractions
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
@@ -8,13 +9,15 @@ open RTFlow
 
 module StateMachine =
     type SubState = {
+        previewActions : bool
+        aiContext : AIContext
         driver : IUIDriver
         post : FromAgent -> unit
         bus : CuaBus
     }
     
     let startAgents (ss:SubState) = async {
-        AppAgent.start ss.driver ss.post ss.bus
+        AppAgent.start ss.previewActions ss.aiContext ss.driver ss.post ss.bus
         PlanAgent.start ss.bus
         CuaTaskAgent.start ss.bus
     }
@@ -62,10 +65,9 @@ module StateMachine =
         return F(s_terminate ss,[])
     }
     
-    let create post =
+    let create previewActions aiContext driver post =
         let bus = CuaBus.Create()
-        let driver = FsPlay.MauiWebViewDriver.create().driver
-        let ss = {driver=driver; post=post; bus=bus}
+        let ss = {driver=driver; post=post; bus=bus; previewActions=previewActions; aiContext=aiContext}
         let s0 = s_start ss
         RTFlow.Workflow.run CancellationToken.None bus s0 //start the state machine with initial state        
         {new IFlow<FlowMsg,AgentMsg> with

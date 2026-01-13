@@ -3,6 +3,7 @@ namespace FsPlaySamples.Cua.Agentic
 open AICore
 open FSharp.Control
 open FsPlan
+open FsPlay.Abstractions
 open RTFlow
 open RTFlow.Functions
 
@@ -13,9 +14,13 @@ module PlanAgent =
         runner  : CuaRunner option
     }
     
-    let taskRunner dims (bus:CuaBus) (t:FsTask<Cu_Task>) (context:AIContext) : Async<Cu_Task_Output> = async {     
+    /// An implementation of taskRunner function for FsPlan where
+    /// the task is performed by sending a message to an agent and waiting for a response.
+    let taskRunner (driver:Lazy<IUIDriver>) (bus:CuaBus) (t:FsTask<Cu_Task>) (context:AIContext) : Async<Cu_Task_Output> = async {     
          let n = "task_listener"
+         let! dims = driver.Value.currentDimensions()
          let taskContext = {screenDimensions=dims; aiContext=context}
+         bus.PostToAgent(Ag_Task_Run (t,taskContext))
          let! msg = bus.AwaitAgentMsg(fun m -> m.IsAg_Plan_DoneTask)
          match msg with
          | Some(Ag_Plan_DoneTask output) -> return output
@@ -23,9 +28,10 @@ module PlanAgent =
     }  
     
     let startTask (bus: CuaBus) runner= async {
-         let! runner = FsPlan.runTask runner
+         let! runner = FsPlan.transition runner         
          match runner.current with
-         | Some _ -> bus.PostToAgent(Ag_Plan_Next runner)
+         | Some _ -> let! runner = FsPlan.runTask runner
+                     bus.PostToAgent(Ag_Plan_Next runner)
          | None -> bus.PostToAgent(Ag_Plan_Done runner)
     }
            

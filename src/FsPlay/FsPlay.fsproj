@@ -21,11 +21,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="IWebViewService.fs" />
+		<Compile Include="ServiceEvents.fs" />
 		<Compile Include="MauiWebViewDriver.fs" />
-		<Compile Include="WebViewService.ios.fs" />
-		<Compile Include="WebViewService.droid.fs" />
-		<Compile Include="WebViewService.fs" />
+		<Compile Include="Service.ios.fs" />
+		<Compile Include="Service.droid.fs" />
+		<Compile Include="Service.fs" />
+		<Compile Include="Actions.fs" />
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -37,6 +38,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <ProjectReference Include="..\AICore\AICore.fsproj" />
 	  <ProjectReference Include="..\FsPlay.Abstractions\FsPlay.Abstractions.fsproj" />
 	</ItemGroup>
 

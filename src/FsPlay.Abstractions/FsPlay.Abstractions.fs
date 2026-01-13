@@ -72,6 +72,7 @@ type IUIDriver =
         abstract member scroll : x:int*y:int -> scrollX:int*scrollY:int -> Async<unit>
         abstract member pressKeys : keys:string list -> Async<unit>
         abstract member dragDrop : sourceX:int*sourceY:int -> targetX:int*targetY:int -> Async<unit>
+        abstract member currentDimensions : unit->Async<int*int>
         abstract member snapshot : unit -> Async<byte[]*(int*int)*string>
         abstract member goBack : unit -> Async<unit>
         abstract member goForward : unit -> Async<unit>

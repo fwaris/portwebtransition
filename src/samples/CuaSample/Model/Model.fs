@@ -1,12 +1,17 @@
 ﻿namespace FsPlaySamples.Cua
 open Fabulous
 open FsPlan
+open FsPlay
+open FsPlay.ios
 open FsPlaySamples.Cua.Agentic
 open RTFlow
+open RTFlow.Workflow
 
 exception InputKeyExn
 
-type DataPoint = {X:float; Y:float; Label:string option} with member this.ItemLabel with get() = this.Label |> Option.defaultValue ""
+type DataPoint = {X:float; Y:float; Label:string option}
+    with member this.ItemLabel with get() = this.Label |> Option.defaultValue ""
+    
 type ChartType = Histogram of float | Bar
 type Chart = {
     Title : string
@@ -43,7 +48,7 @@ type Model =
         mailbox         : System.Threading.Channels.Channel<Msg> //background messages
         settings        : Settings.SettingsModel        
         isActive        : bool
-        item            : string        
+        interactiveTask : string option        
         pointer         : (int*int) option
         action          : string option
         stepping        : bool
@@ -59,13 +64,14 @@ type Model =
 and Msg =
     | StartFlow
     | StopFlow
+    | SetFlow of IFlow<FlowMsg,AgentMsg> option
     | EventError of exn        
     | CheckPreview of bool
+    | DoneInteractiveTask
     | Nop
     | ToggleSettings
     | ToggleNavBar
     | Init
-    | PostInit
     | ViewCreds
     | Nav of Msg
     | MenuSelect of int
@@ -85,9 +91,7 @@ module Model =
     let webviewCache = ViewRef<Microsoft.Maui.Controls.WebView>()
     
     let webviewWrapper = lazy(FsPlay.Service.createWebViewWrapper(webviewCache.Value))
-    
-    let postInit() =
-        FsPlay.MauiWebViewDriver.initialize(webviewWrapper.Value)
+    let driver = lazy(FsPlay.MauiWebViewDriver.create webviewWrapper.Value)
          
     let settingsValid () =
         let a = Settings.Environment.apiKey() |> isEmpty
@@ -96,8 +100,7 @@ module Model =
         let d = Settings.Environment.url() |> isEmpty
         (a || b || c || d) |> not
         
-    let rec startPlan cancelToken cfg waitForPreview poster stepper =
-        let iflow,bus = Agentic.StateMachine.create poster
+    let rec startPlan previewActions poster = async {
         let cfg = Utils.configuration.Value
         cfg.[AICore.ConfigKeys.ANTHROPIC_API_KEY] <- Settings.Environment.apiKey()
         let context : AICore.AIContext = {
@@ -107,7 +110,11 @@ module Model =
             toolsCache =  AICore.Toolbox.makeTools None [ Agentic.ArticleTools(poster) ]
             optionsConfigurator = None            
         }
-        let taskRunner = PlanAgent.taskRunner (0,0) bus 
+        let iflow,bus = Agentic.StateMachine.create previewActions context driver.Value poster
+        let taskRunner = PlanAgent.taskRunner driver bus 
         let runner : FsPlan.Runner<Cu_Task,Cu_Task_Output> = FsPlan.createRunner context LnkPlan.testPlan taskRunner
-        iflow.PostToAgent (Ag_Plan_Run runner)
-        
+        iflow.PostToFlow(Fl_Start)
+        do! Async.Sleep 500
+        iflow.PostToAgent(Ag_Plan_Run runner)
+        return iflow        
+    }        

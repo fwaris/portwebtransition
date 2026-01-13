@@ -13,7 +13,7 @@ module Update =
             mailbox         = System.Threading.Channels.Channel.CreateBounded<Msg>(30)
             settings        = settings
             isActive        = false
-            item            = ""
+            interactiveTask = None
             stepping        = false
             summary         = ArticleSummary.Default
             pointer         = None
@@ -29,12 +29,15 @@ module Update =
     let update nav msg model =
         //Log.info $"%A{msg}"
         match msg with
-        | Init -> wireNavigation model; model, Cmd.ofMsg PostInit
-        | PostInit -> Model.postInit(); model,Cmd.none
+        | StartFlow -> model, Cmd.OfAsync.either UiOps.startStopFlow model SetFlow EventError
+        | StopFlow -> model, Cmd.OfAsync.either UiOps.startStopFlow model SetFlow EventError
+        | SetFlow f -> {model with flow = f}, Cmd.none
+        | Init -> wireNavigation model; model, Cmd.none
         | CheckPreview b -> model.settings.PreviewClicks <- b; model,Cmd.none
         | ViewCreds -> model, Navigation.navigateToSettings nav
         | ViewSummary -> model, Navigation.navigateToAccountInfo nav model.summary
         | ViewStats -> model, Cmd.none
+        | DoneInteractiveTask -> doneTask model
         | Nav msg -> {model with isOpenNavBar=false}, Cmd.ofMsg msg
         | WebviewInteraction e -> model, Cmd.none //Cmd.ofMsg Highlight
         | ToggleSettings -> {model with isOpenSettings = not model.isOpenSettings}, Cmd.none

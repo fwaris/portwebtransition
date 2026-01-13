@@ -16,7 +16,6 @@ module MauiWebViewDriver =
       let opts = JsonSerializerOptions(JsonSerializerDefaults.Web, WriteIndented=true, AllowTrailingCommas=true)        
       opts.Encoder <- JavaScriptEncoder.UnsafeRelaxedJsonEscaping
       opts)
-            
    
     let private escapeScript_ (rawScript:string) =
     
@@ -39,19 +38,16 @@ module MauiWebViewDriver =
         abstract member GoForward : unit -> unit
         abstract member Reload : unit -> unit
         abstract member CaptureAsync : unit -> Task<byte[]*(int*int)*string>
+        abstract member CurrentDimensions : unit -> Task<int*int>
         abstract member CanGoBack : bool
         abstract member CanGoForward : bool
-
-    type DriverInstance = { driver : IUIDriver }
 
     type private DriverContext =
         { wrapper : WebViewWrapper
           mutable lastMouse : int * int
           mutable bootstrapped : bool
           mutable lastUrl : string option }
-
-    let mutable private context : DriverContext option = None
-
+        
     let private httpClient = lazy (new HttpClient())
 
     let bootstrapScript = """
@@ -552,19 +548,6 @@ function typeIntoActiveElement(text, delayMs = 10) {
               return None
         }
 
-    let initialize (wrapper: WebViewWrapper) =
-        context <-
-            Some
-                { wrapper = wrapper
-                  lastMouse = (0, 0)
-                  bootstrapped = false
-                  lastUrl = None }
-
-    let private currentContext () =
-        match context with
-        | Some ctx -> ctx
-        | None -> invalidOp "MauiWebViewDriver has not been initialized. Call initialize with a WebView wrapper first."
-
     let private resetBootstrap ctx = ctx.bootstrapped <- false
 
     let private runOnMainThreadUnit (work: unit -> unit) =
@@ -579,11 +562,20 @@ function typeIntoActiveElement(text, delayMs = 10) {
             ctx.wrapper.CaptureAsync()
         else
             MainThread.InvokeOnMainThreadAsync<byte[]*(int*int)*string>(fun () -> ctx.wrapper.CaptureAsync())
+    let private dimensions (ctx: DriverContext) =
+        if MainThread.IsMainThread then
+            ctx.wrapper.CurrentDimensions()
+        else
+            MainThread.InvokeOnMainThreadAsync<int*int>(fun () -> ctx.wrapper.CurrentDimensions())
+            
+    let create (wrapper:WebViewWrapper)  =
+        let ctx = {
+          wrapper = wrapper
+          lastMouse = (0, 0)
+          bootstrapped = false
+          lastUrl = None
+        }
 
-    let create () =
-      let ctx = currentContext ()
-
-      let driver =
         { new IUIDriver with
           member _.doubleClick (x, y) =
             async {
@@ -686,11 +678,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
                 let alt = List.exists ((=) K.Alt) modifiers
                 let meta = List.exists ((=) K.Meta) modifiers
                 let mods =
-                  sprintf "{ ctrlKey: %s, shiftKey: %s, altKey: %s, metaKey: %s }"
-                    (boolLiteral ctrl)
-                    (boolLiteral shift)
-                    (boolLiteral alt)
-                    (boolLiteral meta)
+                  $"{{ ctrlKey: %s{boolLiteral ctrl}, shiftKey: %s{boolLiteral shift}, altKey: %s{boolLiteral alt}, metaKey: %s{boolLiteral meta} }}"
 
                 let script = $"""
   (function () {{
@@ -723,6 +711,11 @@ function typeIntoActiveElement(text, delayMs = 10) {
               let! _ = runScript ctx script
               return ()
             }
+            
+          member _.currentDimensions() = async {
+            let! w,h = dimensions ctx |> Async.AwaitTask
+            return (w,h)
+          }
 
           member _.snapshot () = async {
             let! (img,_,_) as data = capture ctx |> Async.AwaitTask
@@ -864,5 +857,3 @@ function typeIntoActiveElement(text, delayMs = 10) {
               return if String.IsNullOrWhiteSpace raw then "" else raw
             }
         }
-
-      { driver = driver }

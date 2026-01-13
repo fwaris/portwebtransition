@@ -1,12 +1,10 @@
 namespace FsPlay.droid
 #if ANDROID
 
-open System
 open System.Threading.Tasks
 open Android.Graphics
 open System.IO
 open Android.Util
-open Android.Webkit
 open Microsoft.Maui
 open Microsoft.Maui.ApplicationModel
 open Microsoft.Maui.Controls
@@ -66,9 +64,8 @@ type CreateHandler() =
     
     
         
-type WebViewService() =
-    
-    member private this.CaptureSn(wv:AWebView)  : Task<byte[]*(int*int)*string> = 
+module internal Service = 
+    let private dimensions(wv:AWebView)  : Task<(int*int)*(int*int)> = 
         task {
             try
                 let metrics = wv.Resources.DisplayMetrics
@@ -83,8 +80,19 @@ type WebViewService() =
                 let sh = max 1 (int (float32 bh * rescale))
                 let scaleX = float32 sw / float32 bw
                 let scaleY = float32 sh / float32 bh
+                return (sw,sh),(bw,bh)
+            with ex ->
+                System.Diagnostics.Debug.WriteLine(ex.Message)
+                return raise ex
+        }
+    
+    let private capture_(wv:AWebView)  : Task<byte[]*(int*int)*string> = 
+        task {
+            try
+                let! (sw,sh),(bw,bh) = dimensions(wv)
+                let scaleX = float32 sw / float32 bw
+                let scaleY = float32 sh / float32 bh                
                 use bmp = Bitmap.CreateBitmap(sw, sh, Bitmap.Config.Argb8888)
-                System.Diagnostics.Debug.WriteLine($"scale: {scale}; src: {bw}/{bh}; density: {density}; rescale: %0.2f{rescale}; target: {sw}/{sh}")
                 use canvas = new Canvas(bmp)
                 canvas.Translate(-float32 wv.ScrollX, -float32 wv.ScrollY)
                 canvas.Scale(scaleX, scaleY)
@@ -99,19 +107,31 @@ type WebViewService() =
                 return raise ex
         }
         
-    interface IWebViewService with         
+    
+    let internal currentDimensions(wv:WebView) : Task<int*int> =
+        task {
+            match wv.Handler with
+            | null -> return failwith "not ready"
+            | h -> 
+                match h.PlatformView with 
+                | :? AWebView as wv ->
+                    let f() = dimensions wv
+                    let! (w,h),_ = MainThread.InvokeOnMainThreadAsync<(int*int)*(int*int)>(f)
+                    return (w,h)
+                | _ -> return failwith "webview not ready"
+        }                   
 
-        member this.Capture(wv:WebView) : Task<byte[]*(int*int)*string> = 
-            task {
-                match wv.Handler with
-                | null -> return failwith "not ready"
-                | h -> 
-                    match h.PlatformView with 
-                    | :? AWebView as wv ->
-                        let f() = this.CaptureSn wv
-                        let! data = MainThread.InvokeOnMainThreadAsync<byte[]*(int*int)*string>(f)
-                        return data
-                    | _ -> return failwith "webview not ready"
-            }           
+    let internal capture(wv:WebView) : Task<byte[]*(int*int)*string> = 
+        task {
+            match wv.Handler with
+            | null -> return failwith "not ready"
+            | h -> 
+                match h.PlatformView with 
+                | :? AWebView as wv ->
+                    let f() = capture_ wv
+                    let! data = MainThread.InvokeOnMainThreadAsync<byte[]*(int*int)*string>(f)
+                    return data
+                | _ -> return failwith "webview not ready"
+        }           
          
 #endif

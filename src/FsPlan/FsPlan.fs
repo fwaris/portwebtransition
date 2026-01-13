@@ -118,8 +118,11 @@ module FsPlan =
     let private transitionNextSeq runner xs =
         match runner.completed with
         | [] -> List.tryHead xs
-        | (x,_)::_ -> xs |> List.skipWhile (fun y -> y <> x) |> List.tryHead
-        
+        | (x,_)::_ ->
+            match xs |> List.skipWhile (fun y -> y <> x) with
+            | _::y::_ -> Some y
+            | _ -> None
+            
     let inline internal jumpFrom (runner:Runner<_,_>) (srcTid,output) (g:FsGraph)= async {
         let outStr =
             match runner.taskOutputForTransition with

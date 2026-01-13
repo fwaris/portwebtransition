@@ -6,7 +6,7 @@ type Path = {
 }
 
 [<RequireQualifiedAccess>]
-type Button = Left | Right | Middle
+type Button = Left | Right | Middle | Back | Forward | Wheel | Unknown
 
 [<RequireQualifiedAccess>]
 type Action =

@@ -81,9 +81,22 @@ module PageView =
                     .background(Colors.Transparent)
                     .centerVertical()
                     .alignStartHorizontal()
-                Label(model.action |> Option.defaultValue "")
-                    .verticalTextAlignment(TextAlignment.Center)                    
-                    .lineBreakMode(LineBreakMode.WordWrap)
+                match model.action with
+                | Some a -> 
+                    Label(a)
+                        .verticalTextAlignment(TextAlignment.Center)                    
+                        .lineBreakMode(LineBreakMode.WordWrap)
+                | None -> ()
+                match model.interactiveTask with
+                | Some d ->
+                    Label(d |> shorten 75)
+                        .verticalTextAlignment(TextAlignment.Center)                    
+                        .lineBreakMode(LineBreakMode.WordWrap)
+                    Button("Done", DoneInteractiveTask)                   
+                        .background(Colors.Transparent)
+                        .centerVertical()
+                        .alignStartHorizontal()
+                | None -> ()
              })
                 .isClippedToBounds(true)
                 .centerVertical()
@@ -112,7 +125,7 @@ module PageView =
             .gridColumnSpan(2)
             .margin(3,0,3,0)       
            
-    let navBar (m:Model) =
+    let navBar (miag:Model) =
         (VStack() {
             (Grid([Dimension.Star],[Dimension.Star;Dimension.Star; Dimension.Star; Dimension.Star; Dimension.Star])) {
                 Button(Icons.fa_xmark,ToggleNavBar).font(size=20,fontFamily=C.FA).alignEndHorizontal().margin(10)
@@ -221,8 +234,8 @@ module PageView =
             let page =
                 ContentPage(
                     (Grid([Dimension.Star],[Dimension.Absolute 53.0; Dimension.Star]) {
-                        //controlsView model
-                        //headerView model //needed for android
+                        controlsView model
+                        headerView model 
                         if model.isOpenSettings then popup model
                         if model.isOpenNavBar then navBar model
                     })

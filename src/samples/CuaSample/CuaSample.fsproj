@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<PublishAot>false</PublishAot>
-		<TargetFrameworks>net9.0-android;net9.0-maccatalyst;net9.0-ios</TargetFrameworks>	
+		<TargetFrameworks>net9.0-android;net9.0-maccatalyst</TargetFrameworks>	
+		<!-- <TargetFrameworks>net9.0-ios</TargetFrameworks> -->
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
@@ -57,7 +58,6 @@
 		<Compile Include="Agentic\Messages.fs" />
 		<Compile Include="Agentic\LnkPlan.fs" />
 		<Compile Include="Agentic\AppAgent.fs" />
-		<Compile Include="Agentic\InteractiveTaskAgent.fs" />
 		<Compile Include="Agentic\CuaTaskAgent.fs" />
 		<Compile Include="Agentic\PlanAgent.fs" />
 		<Compile Include="Agentic\Flow.fs" />
@@ -138,7 +138,7 @@
 		<PackageReference Include="System.Net.Primitives" Version="4.3.1" />
 		<PackageReference Include="System.Net.Security" Version="4.3.2" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
-		<PackageReference Include="System.Text.Json" Version="9.0.11" />
+		<PackageReference Include="System.Text.Json" Version="10.0.1" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
 		<PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
 		<PackageReference Include="FSharp.Core" Version="9.0.303" />

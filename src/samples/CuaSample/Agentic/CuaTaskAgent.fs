@@ -196,8 +196,8 @@ module CuaTaskAgent =
                 state.bus.PostToAgent (Ag_Task_Restart cr.context)
                 return state
             | Ag_Task_Continue cr ->
-                let handled = cr.result.Handled
-                let pending = cr.result.Pending
+                let pending = cr.pendingCalls
+                let handled = cr.results
                 let! funcCalls,history = handleNonCuaFunctionCalls state.bus cr.context state.history pending handled
                 handleRemainingCalls state.bus cr.context funcCalls 
                 return {state with history = history; cuaLoopCount = state.cuaLoopCount + 1}

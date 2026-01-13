@@ -4,6 +4,7 @@ open System
 open System.IO
 open Fabulous
 open FsPlan
+open FsPlaySamples.Cua
 open FsPlaySamples.Cua.Agentic
 open Microsoft.Maui.Storage
 
@@ -23,6 +24,18 @@ module UiOps =
         model.mailbox.Writer.TryWrite msg |> ignore
     }
     
+    let postAgentMessage model m=
+        model.mailbox.Writer.TryWrite(FromRunningTask m) |> ignore
+    
+    let startStopFlow (model:Model) = async {
+        match model.flow with
+        | Some f -> f.Terminate()
+                    return None
+        | None -> let previewActions = Settings.Environment.previewClicks()
+                  let! iflow = Model.startPlan previewActions (postAgentMessage model)
+                  return Some iflow        
+    }    
+    
     let planDone (m:Model) (pr:Runner<Cu_Task,Cu_Task_Output>) =
         try
             match m.flow with
@@ -34,8 +47,14 @@ module UiOps =
             m
             
     let loadTask model (t,d) =
-        model,Cmd.none
+        match t with
+        | Some (Target t) -> Model.webviewWrapper.Value.Source <- t
+        | None -> ()
+        {model with interactiveTask = Some d}, Cmd.none
         
+    let doneTask model =
+        model.flow |> Option.iter(fun f -> f.PostToAgent(Ag_Task_End))
+        {model with interactiveTask = None}, Cmd.none                    
     
     let saveDom (dom:string) =
         let path = FileSystem.Current.AppDataDirectory @@ "dom.html"
