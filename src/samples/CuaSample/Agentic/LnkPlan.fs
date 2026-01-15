@@ -44,7 +44,7 @@ module LnkPlan =
         return ""
     }
     
-    let tasks = [
+    let tasks_ = [
         {   id = Tid "intro"
             task = Cu_Interactive (Some (Target "https://linkedin.com"), "Login to LinkedIn")
             description = "introduction"
@@ -53,6 +53,19 @@ module LnkPlan =
         {   id = Tid "find_gen_ai_posts"
             task = Cu_Cua None
             description = "find gen ai posts and save the summaries to memory using save_memory tool"
+            toolNames = [ToolName "save_memory"]                       
+        }               
+    ]
+    
+    let tasks = [
+        {   id = Tid "intro"
+            task = Cu_Interactive (Some (Target "https://twitter.com"), "Login to LinkedIn")
+            description = "introduction"
+            toolNames = []
+        }
+        {   id = Tid "find_tweets"
+            task = Cu_Cua None
+            description = "find all recent posts related to neuro-symbolic ai"
             toolNames = [ToolName "save_memory"]                       
         }               
     ]

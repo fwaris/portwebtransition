@@ -8,7 +8,7 @@
       "command": "/Users/Faisal.Waris1/dotnet9/dotnet",
       "args": [
         "build",
-        "${workspaceFolder}/src/PortWebTest",
+        "${workspaceFolder}/src/samples/CuaSample",
         "-t:Run",
         "-f",
         "net9.0-maccatalyst",

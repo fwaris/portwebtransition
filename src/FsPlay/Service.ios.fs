@@ -26,13 +26,6 @@ document.addEventListener('input', function(e) {
 });
 """
     
-    let escapeScript (rawScript:string) =
-        rawScript
-          .Replace("\\", "\\\\")     // Escape backslashes first
-          .Replace("\"", "\\\"")     // Escape double quotes
-          .Replace("\r", "")         // Remove carriage returns
-          .Replace("\n", "\\n");     // Escape newlines    
-
     let userScript = new WKUserScript(
             new NSString(js),
             WKUserScriptInjectionTime.AtDocumentEnd,

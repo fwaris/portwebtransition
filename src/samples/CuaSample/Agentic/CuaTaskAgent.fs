@@ -115,6 +115,7 @@ module CuaTaskAgent =
           Usage.output_tokens = output
           Usage.total_tokens = total
         }
+        
  
     /// <summary>
     /// This function forms a mutually recursive loop with [<see cref="FsPlaySamples.Cua.Agentic.TaskAgent.handleNonCuaFunctionCalls"/>].<br />
@@ -165,16 +166,12 @@ module CuaTaskAgent =
         match funcCalls with 
         | [] -> bus.PostToAgent (Ag_Task_Restart context)        //no computer call so restart task  
         | xs -> bus.PostToAgent (Ag_App_ComputerCall (funcCalls,None))
-
-    let processRequest bus context history = async {
-        let! funcCalls,history = sendRequest bus context history
-        handleRemainingCalls bus context funcCalls
-        return history
-    }
     
     let internal startCuaLoop state context (systemMsg:string) = async {
         let history = [ChatMessage(ChatRole.System,systemMsg)]
-        let! history = processRequest state.bus context history
+        let! funcCalls,history = sendRequest state.bus context history
+        if not funcCalls.IsEmpty then  
+            state.bus.PostToAgent(Ag_App_ComputerCall (funcCalls,None)) 
         return {state with history = history; cuaLoopCount=0}        
     }
        
