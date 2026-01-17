@@ -132,6 +132,11 @@ module internal Service =
                     let! data = MainThread.InvokeOnMainThreadAsync<byte[]*(int*int)*string>(f)
                     return data
                 | _ -> return failwith "webview not ready"
-        }           
-         
+        }
+        
+    let internal evalJs(wv:WebView) (js:string) : Task<string> = task {
+            let f() = wv.EvaluateJavaScriptAsync(js)
+            return! MainThread.InvokeOnMainThreadAsync<string>(f)
+        }
+                     
 #endif

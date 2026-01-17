@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<PublishAot>false</PublishAot>
-		<TargetFrameworks>net9.0-android;net9.0-maccatalyst</TargetFrameworks>	
+		<TargetFrameworks>net9.0-android;net9.0-maccatalyst;net9.0-ios</TargetFrameworks>	
 		<!-- <TargetFrameworks>net9.0-ios</TargetFrameworks> -->
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
@@ -116,7 +116,7 @@
 		<Compile Include="Platforms\Windows\UndockedRegFreeWinRTFS.fs" />
 		<Compile Include="$(WindowsProjectFolder)App.fs" />
 		<Compile Include="$(WindowsProjectFolder)Main.fs" />
-		<PackageReference Include="FSharp.Maui.WinUICompat" Version="1.1.0" />
+		<PackageReference Include="FSharp.Maui.WinUICompat" />
 	</ItemGroup>
 	<ItemGroup Condition="$(TargetPlatformIdentifier) == 'tizen'">
 		<TizenManifestFile Include="$(TizenProjectFolder)tizen-manifest.xml" />
@@ -124,25 +124,24 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<PackageReference Include="Fabulous.MauiControls" Version="9.0.0-pre9" />
-		<PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.11" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.11" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.11" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.11" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.120" />
-		<PackageReference Include="Microsoft.SemanticKernel" Version="1.66.0" />
-		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.8" />
-		<PackageReference Include="System.Net.Http" Version="4.3.4" />
-		<PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-		<PackageReference Include="System.Net.Security" Version="4.3.2" />
-		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
-		<PackageReference Include="System.Text.Json" Version="10.0.1" />
-		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-		<PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
-		<PackageReference Include="FSharp.Core" Version="9.0.303" />
-		<PackageReference Include="FSharp.Data.Html.Core" Version="6.6.0" />
+		<PackageReference Include="Fabulous.MauiControls" />
+		<PackageReference Include="FSharp.Control.AsyncSeq" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+		<PackageReference Include="Microsoft.Extensions.Logging" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" />
+		<PackageReference Include="Microsoft.Maui.Controls" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
+		<PackageReference Include="Syncfusion.Maui.Toolkit" />
+		<PackageReference Include="System.Net.Http" />
+		<PackageReference Include="System.Net.Primitives" />
+		<PackageReference Include="System.Net.Security" />
+		<PackageReference Include="System.Private.Uri" />
+		<PackageReference Include="System.Text.Json" />
+		<PackageReference Include="System.Text.RegularExpressions" />
+		<PackageReference Include="FSharp.SystemTextJson" />
+		<PackageReference Include="FSharp.Core" />
+		<PackageReference Include="FSharp.Data.Html.Core" />
 	</ItemGroup>
 	
 	<ItemGroup>

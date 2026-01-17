@@ -134,6 +134,23 @@ module internal Service =
                     return data
                 | _ -> return failwith "webview not ready"
         }
+    
+    let internal evalJs(wv:WebView) (js:string) : Task<string> = task {    
+            match wv.Handler with
+            | null -> return failwith "not ready"
+            | h -> 
+                match h.PlatformView with 
+                | :? WKWebView as wv ->
+                    do! MainThread.InvokeOnMainThreadAsync(wv.LayoutIfNeeded)                    
+                    let f() = wv.EvaluateJavaScriptAsync(js)
+                    let! data = MainThread.InvokeOnMainThreadAsync<NSObject>(f)
+                    let data = data.ToString()
+                    return data
+                | _ -> return failwith "webview not ready"
+        }
+    
+    
+        
           
 #endif
 

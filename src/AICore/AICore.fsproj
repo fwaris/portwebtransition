@@ -17,12 +17,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Anthropic.SDK" Version="5.8.0" />
-        <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
-        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.1.1-preview.1.25612.2" />
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.11" />
-        <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.67.1" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.11" />
-        <PackageReference Include="System.Text.Json" Version="10.0.1" />
+        <PackageReference Include="Anthropic.SDK" />
+        <PackageReference Include="FSharp.SystemTextJson" />
+        <!-- <PackageReference Include="Microsoft.Extensions.AI.OpenAI" /> -->
+        <PackageReference Include="Microsoft.Extensions.Logging" />
+        <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+        <PackageReference Include="System.Text.Json" />
     </ItemGroup>
 </Project>

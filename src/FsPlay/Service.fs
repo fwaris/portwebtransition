@@ -26,6 +26,17 @@ module Service =
     #endif
 #endif
 
+    let evalJs (wv:WebView) (js:string) = 
+#if IOS || MACCATALYST
+        FsPlay.ios.Service.evalJs wv js
+#else
+    #if ANDROID
+        FsPlay.droid.Service.evalJs wv js
+    #else 
+        task {failwith "unsupported platform"}
+    #endif
+#endif
+
     let createWebViewWrapper(wv:WebView) =
             {new WebViewWrapper with
                 member this.CaptureAsync() = capture(wv)

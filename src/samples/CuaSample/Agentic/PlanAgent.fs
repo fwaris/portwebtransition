@@ -16,9 +16,9 @@ module PlanAgent =
     
     /// An implementation of taskRunner function for FsPlan where
     /// the task is performed by sending a message to an agent and waiting for a response.
-    let taskRunner (driver:Lazy<IUIDriver>) (bus:CuaBus) (t:FsTask<Cu_Task>) (context:AIContext) : Async<Cu_Task_Output> = async {     
+    let taskRunner (driver:IUIDriver) (bus:CuaBus) (t:FsTask<Cu_Task>) (context:AIContext) : Async<Cu_Task_Output> = async {     
          let n = "task_listener"
-         let! dims = driver.Value.currentDimensions()
+         let! dims = driver.currentDimensions()
          let taskContext = {screenDimensions=dims; aiContext=context}
          bus.PostToAgent(Ag_Task_Run (t,taskContext))
          let! msg = bus.AwaitAgentMsg(fun m -> m.IsAg_Plan_DoneTask)

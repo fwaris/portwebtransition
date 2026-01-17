@@ -68,6 +68,9 @@ module AppAgent =
         | Ag_Task_Run (t,context) when t.task.IsCu_Interactive ->
             Log.info $"[AppAgent] starting interactive task"                                 
             let target,desc = match t.task with | Cu_Interactive (t,d) -> t,d | _ -> failwith "no expected"
+            match target with
+            | Some (Target t) -> do! state.driver.start t
+            | None -> ()
             state.Send(FromAgent.LoadTask(target,desc))
             return {state with task = Some t}
         | Ag_Task_End when state.task.IsSome ->

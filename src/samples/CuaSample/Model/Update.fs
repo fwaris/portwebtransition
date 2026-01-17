@@ -24,15 +24,18 @@ module Update =
             runSteps        = 1
             usage           = Map.empty
             lastError       = None
+            driver          = None
         }, Cmd.ofMsg Init
       
     let update nav msg model =
         //Log.info $"%A{msg}"
         match msg with
+        | Init ->  model, Cmd.ofMsg PostInit
+        | TestSomething -> testSomething model; model, Cmd.none
+        | PostInit -> installDriver model, Cmd.none
         | StartFlow -> model, Cmd.OfAsync.either UiOps.startStopFlow model SetFlow EventError
         | StopFlow -> model, Cmd.OfAsync.either UiOps.startStopFlow model SetFlow EventError
         | SetFlow f -> {model with flow = f}, Cmd.none
-        | Init -> wireNavigation model; model, Cmd.none
         | CheckPreview b -> model.settings.PreviewClicks <- b; model,Cmd.none
         | ViewCreds -> model, Navigation.navigateToSettings nav
         | ViewSummary -> model, Navigation.navigateToAccountInfo nav model.summary

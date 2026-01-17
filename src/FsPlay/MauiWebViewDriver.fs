@@ -17,21 +17,22 @@ module MauiWebViewDriver =
       let opts = JsonSerializerOptions(JsonSerializerDefaults.Web, WriteIndented=true, AllowTrailingCommas=true)        
       opts.Encoder <- JavaScriptEncoder.UnsafeRelaxedJsonEscaping
       opts)
-    
+            
+   
     let private escapeScript_ (rawScript:string) =
     
       rawScript
         .Replace("\\", "\\\\")     // Escape backslashes first
-        //.Replace("\"", "\\\"")     // Escape double quotes
-        .Replace("\r", " ")         // Remove carriage returns
-        .Replace("\n", " ");     // Escape newlines
+        .Replace("\"", "\\\"")     // Escape double quotes
+        .Replace("\r", "")         // Remove carriage returns
+        .Replace("\n", "\\n");     // Escape newlines
         
     let private escapeSomeChars rawScript =
       if DeviceInfo.Current.Platform = DevicePlatform.Android then
         rawScript
       else
         escapeScript_ rawScript
-        
+      
     type WebViewWrapper =
         abstract member EvaluateJavaScriptAsync : string -> Task<string>
         abstract member Source : string with get, set
@@ -43,11 +44,16 @@ module MauiWebViewDriver =
         abstract member CanGoBack : bool
         abstract member CanGoForward : bool
 
+    type DriverInstance = { driver : IUIDriver }
+
     type private DriverContext =
         { wrapper : WebViewWrapper
           mutable lastMouse : int * int
+          mutable bootstrapped : bool
           mutable lastUrl : string option }
-        
+
+    let mutable private context : DriverContext option = None
+
     let private httpClient = lazy (new HttpClient())
 
     let bootstrapScript = """
@@ -425,35 +431,43 @@ function typeIntoActiveElement(text, delayMs = 10) {
   return true;
 })();
 """
-    let wrapScript script =
-        $"""
-(async () => {{
-  try {{
-    {script}
-  }} catch (err) {{
-    return JSON.stringify({{ ok:false, error: err.message }});
-  }}
-}})();
-"""
-    
-    
+
+    let private _ensureBootstrap (ctx: DriverContext) =
+        async {
+            if not ctx.bootstrapped then
+                try
+                    let! _ =
+                        if MainThread.IsMainThread then
+                            ctx.wrapper.EvaluateJavaScriptAsync(escapeSomeChars bootstrapScript) |> Async.AwaitTask
+                        else
+                            MainThread.InvokeOnMainThreadAsync<string>(fun () -> ctx.wrapper.EvaluateJavaScriptAsync(escapeSomeChars bootstrapScript))
+                            |> Async.AwaitTask
+                    ctx.bootstrapped <- true
+                with ex ->
+                    ctx.bootstrapped <- false
+                    Debug.WriteLine($"[MauiWebViewDriver] bootstrap failed: {ex.Message}")
+                    return raise ex
+        }
+
+    let private ensureBootstrap (ctx: DriverContext) =
+        async {
+            if not ctx.bootstrapped then
+                do! _ensureBootstrap ctx
+        }
+
     let private runScript (ctx: DriverContext) (script: string) =
         async {
-            let trimmed = wrapScript (script.Trim())
+            do! ensureBootstrap ctx
             try
-              let prepared = escapeSomeChars trimmed
-              let! raw = 
-                if MainThread.IsMainThread then                    
-                  ctx.wrapper.EvaluateJavaScriptAsync(prepared) |> Async.AwaitTask
-                else
-                    MainThread.InvokeOnMainThreadAsync<string>(fun () -> ctx.wrapper.EvaluateJavaScriptAsync(prepared))
-                        |> Async.AwaitTask
-              debug $"JS:\n{trimmed}\nResp:\n{raw}"
+              let! raw = MainThread.InvokeOnMainThreadAsync<string>(fun () -> ctx.wrapper.EvaluateJavaScriptAsync(escapeSomeChars script))
+                         |> Async.AwaitTask
+              debug $"JS:\n{script}\nResp:\n{raw}"
               let str = "\"" + raw + "\""
               let js = JsonSerializer.Deserialize<string>(str,flSerOpts.Value)
               return js
             with ex ->
-                Debug.WriteLine($"[MauiWebViewDriver] script failed: {ex.Message}\n{trimmed}")
+                ctx.bootstrapped <- false
+                Debug.WriteLine($"[MauiWebViewDriver] script failed: {ex.Message}")
                 return raise ex
         }
 
@@ -537,7 +551,21 @@ function typeIntoActiveElement(text, delayMs = 10) {
               return None
         }
 
-  
+    let initialize (wrapper: WebViewWrapper) =
+        context <-
+            Some
+                { wrapper = wrapper
+                  lastMouse = (0, 0)
+                  bootstrapped = false
+                  lastUrl = None }
+
+    let private currentContext () =
+        match context with
+        | Some ctx -> ctx
+        | None -> invalidOp "MauiWebViewDriver has not been initialized. Call initialize with a WebView wrapper first."
+
+    let private resetBootstrap ctx = ctx.bootstrapped <- false
+
     let private runOnMainThreadUnit (work: unit -> unit) =
         if MainThread.IsMainThread then
             work()
@@ -550,19 +578,19 @@ function typeIntoActiveElement(text, delayMs = 10) {
             ctx.wrapper.CaptureAsync()
         else
             MainThread.InvokeOnMainThreadAsync<byte[]*(int*int)*string>(fun () -> ctx.wrapper.CaptureAsync())
+            
+
     let private dimensions (ctx: DriverContext) =
         if MainThread.IsMainThread then
             ctx.wrapper.CurrentDimensions()
         else
             MainThread.InvokeOnMainThreadAsync<int*int>(fun () -> ctx.wrapper.CurrentDimensions())
-            
-    let create (wrapper:WebViewWrapper)  =
-        let ctx = {
-          wrapper = wrapper
-          lastMouse = (0, 0)
-          lastUrl = None
-        }
+                        
 
+    let create () =
+      let ctx = currentContext ()
+
+      let driver =
         { new IUIDriver with
           member _.doubleClick (x, y) =
             async {
@@ -665,7 +693,11 @@ function typeIntoActiveElement(text, delayMs = 10) {
                 let alt = List.exists ((=) K.Alt) modifiers
                 let meta = List.exists ((=) K.Meta) modifiers
                 let mods =
-                  $"{{ ctrlKey: %s{boolLiteral ctrl}, shiftKey: %s{boolLiteral shift}, altKey: %s{boolLiteral alt}, metaKey: %s{boolLiteral meta} }}"
+                  sprintf "{ ctrlKey: %s, shiftKey: %s, altKey: %s, metaKey: %s }"
+                    (boolLiteral ctrl)
+                    (boolLiteral shift)
+                    (boolLiteral alt)
+                    (boolLiteral meta)
 
                 let script = $"""
   (function () {{
@@ -703,7 +735,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
             let! w,h = dimensions ctx |> Async.AwaitTask
             return (w,h)
           }
-
+          
           member _.snapshot () = async {
             let! (img,_,_) as data = capture ctx |> Async.AwaitTask
             
@@ -725,6 +757,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
                   if ctx.wrapper.CanGoBack then
                     ctx.wrapper.GoBack())
                 |> Async.AwaitTask
+              resetBootstrap ctx
               return ()
             }
 
@@ -735,6 +768,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
                   if ctx.wrapper.CanGoForward then
                     ctx.wrapper.GoForward())
                 |> Async.AwaitTask
+              resetBootstrap ctx
               return ()
             }
 
@@ -744,6 +778,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
                 runOnMainThreadUnit (fun () -> ctx.wrapper.Source <- target)
                 |> Async.AwaitTask
               ctx.lastUrl <- Some target
+              resetBootstrap ctx
               return ()
             }
 
@@ -770,6 +805,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
                   runOnMainThreadUnit (fun () -> ctx.wrapper.Source <- arg)
                   |> Async.AwaitTask
                 ctx.lastUrl <- Some arg
+                resetBootstrap ctx
                 return ()
             }
 
@@ -799,6 +835,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
           member _.reload () =
             async {
               let! _ = runOnMainThreadUnit (fun () -> ctx.wrapper.Reload()) |> Async.AwaitTask
+              resetBootstrap ctx
               return ()
             }
 
@@ -839,3 +876,5 @@ function typeIntoActiveElement(text, delayMs = 10) {
               return if String.IsNullOrWhiteSpace raw then "" else raw
             }
         }
+
+      { driver = driver }

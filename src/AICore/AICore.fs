@@ -64,7 +64,7 @@ module AnthropicClient =
     )
     
     let toSchema(t:Type) = AIJsonUtilities.CreateJsonSchema(t)
-
+(*
 module OpenAIClient =
                 
     let createClientWithKey(key:string,modelId:string) : IChatClient =
@@ -74,6 +74,7 @@ module OpenAIClient =
  
     let createClient(cfg:IConfiguration) =
         createClientWithKey(cfg.[ConfigKeys.OPENAI_API_KEY], cfg.[ConfigKeys.CHAT_MODEL_ID])
+*)
 
 module AIUtils =
     open System.IO
@@ -146,8 +147,9 @@ module AIUtils =
                 if context.backend.IsAnthropicLike then 
                     opts.ModelId <- cfg.[ConfigKeys.CHAT_MODEL_ID]
                     AnthropicClient.createClient(cfg)           
-                else 
-                    OpenAIClient.createClient(cfg)
+                else
+                    failwith "only anthropic supported"
+                    //OpenAIClient.createClient(cfg)
             let! resp = client.GetResponseAsync<'ResponseFormat>(history,opts,useJsonSchemaResponseFormat=true) |> Async.AwaitTask
             return resp
         with ex ->
@@ -173,8 +175,9 @@ module AIUtils =
                 if context.backend.IsAnthropicLike then 
                     opts.ModelId <- cfg.[ConfigKeys.CHAT_MODEL_ID]
                     AnthropicClient.createClient(cfg)           
-                else 
-                    OpenAIClient.createClient(cfg)
+                else
+                    failwith "only anthropic supported"
+                    //OpenAIClient.createClient(cfg)
             let! resp = client.GetResponseAsync<'ResponseFormat>(history,opts,useJsonSchemaResponseFormat=true) |> Async.AwaitTask
             let structuredResp = //need this until structured output support is added to anthropic lib
                 if context.backend.IsAnthropicLike then

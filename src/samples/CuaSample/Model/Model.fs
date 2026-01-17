@@ -1,11 +1,9 @@
 ﻿namespace FsPlaySamples.Cua
 open Fabulous
 open FsPlan
-open FsPlay
-open FsPlay.ios
+open FsPlay.Abstractions
 open FsPlaySamples.Cua.Agentic
 open RTFlow
-open RTFlow.Workflow
 
 exception InputKeyExn
 
@@ -59,6 +57,7 @@ type Model =
         flow            : IFlow<FlowMsg,AgentMsg> option
         usage           : AICore.UsageMap
         lastError       : string option
+        driver          : IUIDriver option        
     }
 
 and Msg =
@@ -69,9 +68,11 @@ and Msg =
     | CheckPreview of bool
     | DoneInteractiveTask
     | Nop
+    | TestSomething
     | ToggleSettings
     | ToggleNavBar
     | Init
+    | PostInit
     | ViewCreds
     | Nav of Msg
     | MenuSelect of int
@@ -85,14 +86,11 @@ and Msg =
     | FromRunningTask of FromAgent
 
 module Model =
-    open System.Threading
-    open Microsoft.Maui.Controls
 
     let webviewCache = ViewRef<Microsoft.Maui.Controls.WebView>()
-    
     let webviewWrapper = lazy(FsPlay.Service.createWebViewWrapper(webviewCache.Value))
-    let driver = lazy(FsPlay.MauiWebViewDriver.create webviewWrapper.Value)
-         
+
+    
     let settingsValid () =
         let a = Settings.Environment.apiKey() |> isEmpty
         let b = Settings.Environment.userid() |> isEmpty
@@ -100,7 +98,7 @@ module Model =
         let d = Settings.Environment.url() |> isEmpty
         (a || b || c || d) |> not
         
-    let rec startPlan previewActions poster = async {
+    let rec startPlan driver previewActions poster = async {
         let cfg = Utils.configuration.Value
         cfg.[AICore.ConfigKeys.ANTHROPIC_API_KEY] <- Settings.Environment.apiKey()
         let context : AICore.AIContext = {
@@ -110,11 +108,12 @@ module Model =
             toolsCache =  AICore.Toolbox.makeTools None [ Agentic.ArticleTools(poster) ]
             optionsConfigurator = None            
         }
-        let iflow,bus = Agentic.StateMachine.create previewActions context driver.Value poster
+        let iflow,bus = Agentic.StateMachine.create previewActions context driver poster
         let taskRunner = PlanAgent.taskRunner driver bus 
         let runner : FsPlan.Runner<Cu_Task,Cu_Task_Output> = FsPlan.createRunner context LnkPlan.testPlan taskRunner
         iflow.PostToFlow(Fl_Start)
         do! Async.Sleep 500
         iflow.PostToAgent(Ag_Plan_Run runner)
         return iflow        
-    }        
+    }
+    

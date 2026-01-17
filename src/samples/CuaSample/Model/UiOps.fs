@@ -4,8 +4,10 @@ open System
 open System.IO
 open Fabulous
 open FsPlan
+open FsPlay
 open FsPlaySamples.Cua
 open FsPlaySamples.Cua.Agentic
+open Microsoft.Maui.ApplicationModel
 open Microsoft.Maui.Storage
 
 module UiOps =
@@ -31,9 +33,12 @@ module UiOps =
         match model.flow with
         | Some f -> f.Terminate()
                     return None
-        | None -> let previewActions = Settings.Environment.previewClicks()
-                  let! iflow = Model.startPlan previewActions (postAgentMessage model)
-                  return Some iflow        
+        | None when model.driver.IsSome ->
+                  let previewActions = Settings.Environment.previewClicks()
+                  let! iflow = Model.startPlan model.driver.Value previewActions (postAgentMessage model)
+                  return Some iflow
+        | None -> Log.error "driver not initialized"
+                  return None
     }    
     
     let planDone (m:Model) (pr:Runner<Cu_Task,Cu_Task_Output>) =
@@ -47,9 +52,15 @@ module UiOps =
             m
             
     let loadTask model (t,d) =
-        match t with
-        | Some (Target t) -> Model.webviewWrapper.Value.Source <- t
-        | None -> ()
+        // match t with
+        // | Some (Target t) ->
+        //     async {
+        //         match model.driver with
+        //         | Some d -> do! d.start t
+        //         | None  -> ()                
+        //     }
+        //     |> Async.Start
+        // | None -> ()
         {model with interactiveTask = Some d}, Cmd.none
         
     let doneTask model =
@@ -73,14 +84,33 @@ module UiOps =
     let mergeValues (model:Model) (us:AICore.UsageMap)  =
         {model with usage = AICore.Usage.combineUsage model.usage us}           
     
-    let wireNavigation (model:Model) =
-        Model.webviewCache.TryValue
-        |> Option.iter(fun wv ->
-            wv.Navigated.Add(fun _ ->
-                async {
-                    do! Async.Sleep 1000
-                    model.mailbox.Writer.TryWrite Nop |> ignore    
-                }
-                |> Async.Start))
 
-    
+    let installDriver (model:Model) =
+        let driver = 
+            Model.webviewCache.TryValue
+            |> Option.map(fun wv ->   
+                do FsPlay.MauiWebViewDriver.initialize Model.webviewWrapper.Value
+                let driver =  FsPlay.MauiWebViewDriver.create()
+                driver.driver)
+        {model with driver = driver}
+        
+    let testSomething (model:Model) =
+        let comp = 
+            async {                              
+                let js1 = """(function(){ return JSON.stringify({ ok: !!(true) }); })();"""
+                let js2 = """(function(){ return JSON.stringify({ ok: !!(window.__fsDriver) }); })();"""
+                let js2 = """(function(){ return JSON.stringify({ ok: ("__fsDriver" in window) }); })();"""
+                
+                let f() = Model.webviewCache.Value.EvaluateJavaScriptAsync(js2)
+                let! v = MainThread.InvokeOnMainThreadAsync<string>(f) |> Async.AwaitTask
+                debug $"v = {v}"
+                return ""
+            }
+        async {
+            match! Async.Catch(comp) with
+            | Choice1Of2 _ -> ()
+            | Choice2Of2 ex -> debug (ex.Message)
+        }
+        |> Async.Start
+        
+        
