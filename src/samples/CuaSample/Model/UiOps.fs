@@ -100,8 +100,9 @@ module UiOps =
                 let js1 = """(function(){ return JSON.stringify({ ok: !!(true) }); })();"""
                 let js2 = """(function(){ return JSON.stringify({ ok: !!(window.__fsDriver) }); })();"""
                 let js2 = """(function(){ return JSON.stringify({ ok: ("__fsDriver" in window) }); })();"""
+                let js3 = """(function(){ return JSON.stringify({ ok: true }); })();"""
                 
-                let f() = Model.webviewCache.Value.EvaluateJavaScriptAsync(js2)
+                let f() = Model.webviewCache.Value.EvaluateJavaScriptAsync(js3)
                 let! v = MainThread.InvokeOnMainThreadAsync<string>(f) |> Async.AwaitTask
                 debug $"v = {v}"
                 return ""

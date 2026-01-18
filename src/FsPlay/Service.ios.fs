@@ -34,8 +34,9 @@ document.addEventListener('input', function(e) {
     
     let bootstrapScript = new WKUserScript(
             new NSString(MauiWebViewDriver.bootstrapScript),
-            WKUserScriptInjectionTime.AtDocumentEnd,
-            true // forMainFrameOnly
+            WKUserScriptInjectionTime.AtDocumentStart,
+            false,
+            WKContentWorld.Page // forMainFrameOnly
     )
 
 type EventPoster() =
@@ -142,14 +143,12 @@ module internal Service =
                 match h.PlatformView with 
                 | :? WKWebView as wv ->
                     do! MainThread.InvokeOnMainThreadAsync(wv.LayoutIfNeeded)                    
-                    let f() = wv.EvaluateJavaScriptAsync(js)
+                    let f() = wv.EvaluateJavaScriptAsync(js,null, WKContentWorld.Page)
                     let! data = MainThread.InvokeOnMainThreadAsync<NSObject>(f)
                     let data = data.ToString()
                     return data
                 | _ -> return failwith "webview not ready"
         }
-    
-    
         
           
 #endif

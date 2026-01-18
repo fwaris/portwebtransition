@@ -16,8 +16,8 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Maui.Controls" Version="9.0.120" />
-    <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.120" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.67.1" />
     <PackageVersion Include="Syncfusion.Maui.Toolkit" Version="1.0.8" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />

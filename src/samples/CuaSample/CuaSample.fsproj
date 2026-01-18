@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<PublishAot>false</PublishAot>
-		<TargetFrameworks>net9.0-android;net9.0-maccatalyst;net9.0-ios</TargetFrameworks>	
-		<!-- <TargetFrameworks>net9.0-ios</TargetFrameworks> -->
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net10.0-android;net10.0-maccatalyst;net10.0-ios</TargetFrameworks>	
+		<!-- <TargetFrameworks>net10.0-ios</TargetFrameworks> -->
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
 		<OutputType>Exe</OutputType>
@@ -18,7 +18,7 @@
 		<EnableDefaultItems>false</EnableDefaultItems>
 		<DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
 		<!-- Display name -->
-		<ApplicationTitle>Port Web</ApplicationTitle>
+		<ApplicationTitle>CuaSample</ApplicationTitle>
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.fsplaysamples.cua</ApplicationId>
 		<ApplicationIdGuid>5D26BACE-A3ED-4E42-ABDA-1B0D073F7764</ApplicationIdGuid>
@@ -133,12 +133,6 @@
 		<PackageReference Include="Microsoft.Maui.Controls" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
 		<PackageReference Include="Syncfusion.Maui.Toolkit" />
-		<PackageReference Include="System.Net.Http" />
-		<PackageReference Include="System.Net.Primitives" />
-		<PackageReference Include="System.Net.Security" />
-		<PackageReference Include="System.Private.Uri" />
-		<PackageReference Include="System.Text.Json" />
-		<PackageReference Include="System.Text.RegularExpressions" />
 		<PackageReference Include="FSharp.SystemTextJson" />
 		<PackageReference Include="FSharp.Core" />
 		<PackageReference Include="FSharp.Data.Html.Core" />

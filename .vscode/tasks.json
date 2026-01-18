@@ -4,14 +4,13 @@
     {
       "label": "Run MAUI MacCatalyst",
       "type": "shell",
-      //"command": "dotnet",
-      "command": "/Users/Faisal.Waris1/dotnet9/dotnet",
+      "command": "dotnet",
       "args": [
         "build",
         "${workspaceFolder}/src/samples/CuaSample",
         "-t:Run",
         "-f",
-        "net9.0-maccatalyst",
+        "net10.0-maccatalyst",
         "-c",
         "Debug"
       ],      
@@ -20,16 +19,14 @@
     {
       "label": "Run MAUI iOS Simulator",
       "type": "shell",
-      //"command": "/Users/Faisal.Waris1/dotnet9/dotnet",
       "command": "dotnet",
       "args": [
         "build",
-        "${workspaceFolder}/src/PortWebTest",
+        "${workspaceFolder}/src/samples/CuaSample",
         "-t:Run",
         "-f",
-        "net9.0-ios",
+        "net10.0-ios",
         "-p:RuntimeIdentifier=iossimulator-arm64",
-//        "-p:_DeviceName=v2:udid=7D49444B-6AE9-473B-A2D3-850BCBEF7F18", //E1652AF2-D4EB-4678-A39F-D26E548730CD
         "-p:_DeviceName=v2:udid=E1652AF2-D4EB-4678-A39F-D26E548730CD",
         "-p:Configuration=Debug"
       ],
@@ -38,14 +35,13 @@
     {
       "label": "Run MAUI Android",
       "type": "shell",
-      "command": "/Users/Faisal.Waris1/dotnet9/dotnet",
-      //"command": "dotnet",
+      "command": "dotnet",
       "args": [
         "build",
-        "${workspaceFolder}/src/PortWebTest",
+        "${workspaceFolder}/src/samples/CuaSample",
         "-t:Run",
         "-f",
-        "net9.0-android",
+        "net10.0-android",
         "-p:Configuration=Debug"
       ],
       "problemMatcher": "$msCompile"
