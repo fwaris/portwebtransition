@@ -10,7 +10,7 @@ open FsPlaySamples.Cua
 type NavigationRoute =
     | Main
     | Keys
-    | ArticleSummary of ArticleSummary
+    | ArticleSummaries of ArticleSummary list
     | Stats of Chart list
 
 /// The NavigationController is used to notify the intention to navigate to a new page (or go back).
@@ -39,8 +39,8 @@ module Navigation =
     let navigateToSettings nav =
         navigateTo nav (NavigationRoute.Keys)
         
-    let navigateToAccountInfo nav acctInfo =
-        navigateTo nav (NavigationRoute.ArticleSummary acctInfo)
+    let navigateToSummaries nav summaries =
+        navigateTo nav (NavigationRoute.ArticleSummaries summaries)
 
     let navigateToStats nav histogram =
         navigateTo nav (NavigationRoute.Stats histogram)

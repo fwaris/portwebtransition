@@ -79,15 +79,29 @@ function findScrollableParent(el) {
 // Scroll a specific target element
 // ------------------------------------------------------------
 function performScroll(target, scrollX, scrollY) {
-    if (!target) return "no-scroll-target";
+  if (!target) return "no-scroll-target";
 
-    target.scrollTo({
-        left: scrollX,
-        top: scrollY,
-        behavior: "smooth"
-    });
+  const normalizeDelta = (value) => {
+    if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+    if (typeof value === "string") {
+      const parsed = parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
+  };
 
-    return "scrolled";
+  const deltaX = normalizeDelta(scrollX);
+  const deltaY = normalizeDelta(scrollY);
+
+  if (typeof target.scrollBy === "function") {
+    target.scrollBy({ left: deltaX, top: deltaY, behavior: "smooth" });
+  } else {
+    const nextLeft = (target.scrollLeft || 0) + deltaX;
+    const nextTop = (target.scrollTop || 0) + deltaY;
+    target.scrollTo({ left: nextLeft, top: nextTop, behavior: "smooth" });
+  }
+
+  return "scrolled";
 }
 
 // ------------------------------------------------------------

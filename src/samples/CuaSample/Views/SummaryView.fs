@@ -7,15 +7,16 @@ open type Fabulous.Maui.View
 open type Fabulous.Context
 open FsPlaySamples.Cua.Navigation
 open FsPlaySamples.Cua
+open Microsoft.Maui.Graphics
 
 
 module SummaryView =
     let private (!-) (a:string option) = a |> Option.defaultValue "" 
-    type AcctModel = { articleSummary: ArticleSummary; isActive:bool}
+    type AcctModel = { summaries: ArticleSummary list; isActive:bool}
     and AcctMsg = BackButtonPressed | Active | InActive | Nop of string
     
-    let init acctInfo =
-        { articleSummary=acctInfo; isActive=false;}, Cmd.none        
+    let init summaries =
+        { summaries=summaries; isActive=false;}, Cmd.none        
 
     let update nav msg (model: AcctModel) =
         match msg with
@@ -47,15 +48,16 @@ module SummaryView =
         Component("Data") {            
             let! model = Context.Mvu(program nav appMsDispatcher, articleSummary)            
             (ContentPage(                
-                (Grid([Dimension.Absolute 150; Dimension.Star],
-                     [Dimension.Star]) {
-                    Label("Summary:").gridColumn(0).gridRow(0)
-                    Label(!- model.articleSummary.Summary).gridColumn(1).gridRow(0)
-                }).margin(5)                
-                ).padding(5.)
-                    
-            )
-                .title("Account Info")
+                ScrollView(
+                    (CollectionView model.summaries (fun x ->
+                        VStack() {                            
+                            Label($"* {x.Title}")
+                            Label($"{x.Summary}")                                
+                            (BoxView(Colors.Gray)).height(1)
+                        })).margin(5)                
+                ).padding(5.)                    
+            ))
+                .title("Summaries")
                 .hasBackButton(true)
                 .onNavigatedTo(Active)
                 .onNavigatedFrom(InActive)                

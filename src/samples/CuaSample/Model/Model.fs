@@ -34,11 +34,13 @@ type RunStatus = Init | Stepping | Running | Finished
 
 type ArticleSummary =
     {
-       Summary       : string option
+       Title         : string
+       Summary       : string
     }
     with
         static member Default = {
-            Summary = None
+            Title = ""
+            Summary = ""
         }
 
 type Model = 
@@ -50,7 +52,7 @@ type Model =
         pointer         : (int*int) option
         action          : string option
         stepping        : bool
-        summary         : ArticleSummary
+        summaries       : ArticleSummary list
         isOpenSettings  : bool
         isOpenNavBar    : bool
         runSteps        : int
@@ -110,7 +112,7 @@ module Model =
         }
         let iflow,bus = Agentic.StateMachine.create previewActions context driver poster
         let taskRunner = PlanAgent.taskRunner driver bus 
-        let runner : FsPlan.Runner<Cu_Task,Cu_Task_Output> = FsPlan.createRunner context LnkPlan.testPlan taskRunner
+        let runner : FsPlan.Runner<Cu_Task,Cu_Task_Output> = FsPlan.createRunner context Plans.testPlan taskRunner
         iflow.PostToFlow(Fl_Start)
         do! Async.Sleep 500
         iflow.PostToAgent(Ag_Plan_Run runner)

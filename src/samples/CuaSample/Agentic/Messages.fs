@@ -27,7 +27,7 @@ type CallsResult = {Handled:AIContent list; Pending:CallType list; taskContext:T
          
 [<RequireQualifiedAccess>]
 type FromAgent =
-    | Summary of string
+    | Summary of string*string
     | Preview of ActionPreview
     | PlanDone of Runner<Cu_Task,Cu_Task_Output>
     | LoadTask of (Target option*string) 

@@ -56,7 +56,7 @@
 		<Compile Include="SettingsModel.fs" />
 		<Compile Include="Icons.fs" />
 		<Compile Include="Agentic\Messages.fs" />
-		<Compile Include="Agentic\LnkPlan.fs" />
+		<Compile Include="Agentic\Plans.fs" />
 		<Compile Include="Agentic\AppAgent.fs" />
 		<Compile Include="Agentic\CuaTaskAgent.fs" />
 		<Compile Include="Agentic\PlanAgent.fs" />

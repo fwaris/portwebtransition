@@ -47,7 +47,7 @@ module App =
         match path with
         | NavigationRoute.Main -> AnyPage(Views.PageView.view nav appMsgDispatcher)
         | NavigationRoute.Keys -> AnyPage(Views.CredsView.view nav appMsgDispatcher)
-        | NavigationRoute.ArticleSummary acct -> AnyPage(Views.SummaryView.view nav appMsgDispatcher acct)
+        | NavigationRoute.ArticleSummaries acct -> AnyPage(Views.SummaryView.view nav appMsgDispatcher acct)
         | NavigationRoute.Stats hist -> AnyPage(Views.StatsView.view nav appMsgDispatcher hist)
 
     let view nav appMsgDispatcher () =

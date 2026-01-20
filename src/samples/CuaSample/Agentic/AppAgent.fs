@@ -35,7 +35,14 @@ module AppAgent =
                     if ss.previewActions && not previews.IsEmpty then
                           previews |> List.iter ss.Send 
                           do! Async.Sleep 1000                            //wait for the UI to display click                        
-                    do! acts |> AsyncSeq.ofSeq |> AsyncSeq.iterAsync (FsPlay.Actions.perform ss.driver) 
+                    do! acts |> AsyncSeq.ofSeq |> AsyncSeq.iterAsync (fun a -> async {
+                              let a' =
+                                  match a with
+                                  | Action.Keypress k when k.keys = ["alt";"Left"] -> Action.Click {|button=Button.Back; x=0;y=0|}
+                                  | a -> a
+                              Log.info (a'.toString())
+                              do! FsPlay.Actions.perform ss.driver a'
+                         })
                     let callRslt = FunctionResultContent(fc.CallId, "{ \"status\": \"done\" }") :> AIContent //need response for each call
                     return (callRslt::acc)
                  })
@@ -59,9 +66,8 @@ module AppAgent =
             let (cuaCalls,pendingCalls) = splitCalls callTypes
             let! results,dims = performActions state cuaCalls
             let ctx = {screenDimensions=dims; aiContext=state.aiContext}            
-            state.bus.PostToAgent(Ag_Task_Continue {|results=results; pendingCalls=pendingCalls; context=ctx |})
-            Log.info $"[AppAgent] computer call"                                 
-            return state //()// st.Send(FromAgent.Preview p)
+            state.bus.PostToAgent(Ag_Task_Continue {|results=results; pendingCalls=pendingCalls; context=ctx |})                                 
+            return state 
         | Ag_Task_Run (t,context) when state.task.IsSome ->
             Log.warn $"[AppAgent] interactive task already in progress. Ignoring new task"                 
             return state         

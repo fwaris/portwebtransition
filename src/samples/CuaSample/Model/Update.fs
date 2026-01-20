@@ -15,7 +15,7 @@ module Update =
             isActive        = false
             interactiveTask = None
             stepping        = false
-            summary         = ArticleSummary.Default
+            summaries       = []     
             pointer         = None
             action          = None
             isOpenSettings  = false
@@ -38,7 +38,7 @@ module Update =
         | SetFlow f -> {model with flow = f}, Cmd.none
         | CheckPreview b -> model.settings.PreviewClicks <- b; model,Cmd.none
         | ViewCreds -> model, Navigation.navigateToSettings nav
-        | ViewSummary -> model, Navigation.navigateToAccountInfo nav model.summary
+        | ViewSummary -> model, Navigation.navigateToSummaries nav model.summaries
         | ViewStats -> model, Cmd.none
         | DoneInteractiveTask -> doneTask model
         | Nav msg -> {model with isOpenNavBar=false}, Cmd.ofMsg msg
@@ -51,7 +51,7 @@ module Update =
         | Active -> {model with isActive = true},Cmd.none
         | InActive -> {model with isActive = false},Cmd.none
         | MenuSelect i -> model,Cmd.none
-        | FromRunningTask (Agentic.FromAgent.Summary summary) -> {model with summary.Summary=Some summary},Cmd.none
+        | FromRunningTask (Agentic.FromAgent.Summary (title,summary)) -> {model with summaries = {Summary=summary; Title=title}::model.summaries},Cmd.none
         | FromRunningTask (Agentic.FromAgent.Preview c) -> postMsgDelayed model PreviewClear |> Async.Start; {model with pointer = c.click; action = Some c.action},Cmd.none
         | FromRunningTask (Agentic.FromAgent.PlanDone rnr) -> planDone model rnr, Cmd.none
         | FromRunningTask (Agentic.FromAgent.LoadTask(t,r)) -> loadTask model (t,r)

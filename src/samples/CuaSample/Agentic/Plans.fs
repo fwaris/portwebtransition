@@ -10,11 +10,11 @@ type ArticleTools(poster: FromAgent -> unit) =
 
     [<KernelFunction("save_summary")>]
     [<Description("Save the article summary")>]
-    member this.save_summary(smry:string) = 
+    member this.save_summary(title:string, summary:string) = 
         let comp = async {
             try
-                Log.info $"[ArticleTools] {nameof this.save_summary} {smry}"
-                poster (FromAgent.Summary smry)
+                Log.info $"[ArticleTools] {nameof this.save_summary} {title}\n{summary}"
+                poster (FromAgent.Summary (title,summary))
                 return "summary saved"
             with ex ->
                 Log.exn(ex, nameof this.save_summary)
@@ -38,22 +38,22 @@ type TaskTools(poster: AgentMsg -> unit) =
         }
         Async.StartAsTask comp
 
-module LnkPlan =    
+module Plans =    
     open FsPlan
     let getOutput (t:FsTask<Cu_Task>) (kernel:IServiceProvider) = async {
         return ""
     }
     
-    let linkedInTasks = [
+    let amazonTasks = [
         {   id = Tid "intro"
-            task = Cu_Interactive (Some (Target "https://linkedin.com"), "Login, then click Continue")
+            task = Cu_Interactive (Some (Target "https://amazon.com"), "Login, then click Continue")
             description = "introduction"
             toolNames = []
         }
-        {   id = Tid "find_gen_ai_posts"
+        {   id = Tid "find_camera_case"
             task = Cu_Cua None
-            description = "find gen ai posts and save the summaries to memory using save_memory tool"
-            toolNames = [ToolName "save_memory"]                       
+            description = "Find a camera case for iphone 16 max that has built-in screen protector. For all suitable case use `save_summary` tool to save the data."
+            toolNames = [ToolName "save_summary"]                       
         }               
     ]
     
@@ -65,13 +65,13 @@ module LnkPlan =
         }
         {   id = Tid "find_gen_ai_posts"
             task = Cu_Cua None
-            description = "search for posts related to NeuroSymbolic AI and save them to memory"
-            toolNames = [ToolName "save_memory"]                       
+            description = "search for posts related to NeuroSymbolic AI and save the summaries usign the `save_summary` tool. Scroll down to see relevant posts"
+            toolNames = [ToolName "save_summary"]                       
         }               
     ]        
     
     let testPlan =
-        let tasks = twitterTasks
+        let tasks = amazonTasks//twitterTasks
         {
             tasks = tasks |> List.map (fun x ->x.id,x) |> Map.ofList
             flow = FsPlanFlow.Sequential (tasks |> List.map _.id)
