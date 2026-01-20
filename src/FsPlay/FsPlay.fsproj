@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<Compile Include="ServiceEvents.fs" />
+		<Compile Include="Bootstrap.fs" />
 		<Compile Include="MauiWebViewDriver.fs" />
 		<Compile Include="Service.ios.fs" />
 		<Compile Include="Service.droid.fs" />

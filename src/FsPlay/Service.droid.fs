@@ -41,7 +41,7 @@ type CreateHandler() =
             fun handler view previous ->
                 match handler with
                 | :? CreateHandler as customHandler ->
-                    let client = new BootstrapWebViewClient(customHandler, MauiWebViewDriver.bootstrapScript)
+                    let client = new BootstrapWebViewClient(customHandler, Bootstrap.bootstrapScript)
                     handler.PlatformView.SetWebViewClient(client)
                 | _ when not (obj.ReferenceEquals(previous, null)) ->
                     previous.Invoke(handler, view)

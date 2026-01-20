@@ -99,11 +99,18 @@ module UiOps =
             async {                              
                 let js1 = """(function(){ return JSON.stringify({ ok: !!(true) }); })();"""
                 let js2 = """(function(){ return JSON.stringify({ ok: !!(window.__fsDriver) }); })();"""
-                let js2 = """(function(){ return JSON.stringify({ ok: ("__fsDriver" in window) }); })();"""
+                //let js2 = """(function(){ return JSON.stringify({ ok: ("__fsDriver" in window) }); })();"""
                 let js3 = """(function(){ return JSON.stringify({ ok: true }); })();"""
-                
-                let! v = FsPlay.Service.evalJs (Model.webviewCache.Value) js3 |> Async.AwaitTask
+                let js4 = """(function () {
+    return JSON.stringify({ ok: !!(window.__fsDriver && window.__fsDriver.clickAt(310, 25, 0)) });
+  })();
+"""                
+                let! v = FsPlay.Service.evalJs (Model.webviewCache.Value) js4 |> Async.AwaitTask
                 debug $"v = {v}"
+                let! v2 =
+                    match model.driver with
+                    | Some d -> d.typeText("Neurosymbolic AI")
+                    | None -> async{return()}
                 return ""
             }
         async {

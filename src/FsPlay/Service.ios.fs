@@ -41,7 +41,7 @@ document.addEventListener('input', function(e) {
     )
     
     let bootstrapScript = new WKUserScript(
-            new NSString(MauiWebViewDriver.bootstrapScript),
+            new NSString(Bootstrap.bootstrapScript),
             WKUserScriptInjectionTime.AtDocumentStart,
             false,
             WKContentWorld.Page // forMainFrameOnly
@@ -79,6 +79,43 @@ type ProxySchemeHandler
         |> List.fold (fun acc token -> if seen.Add(token) then token :: acc else acc) []
         |> List.rev
 
+    let addHostToken (host: string) (tokens: string list) : string list =
+        if String.IsNullOrWhiteSpace(host) then tokens
+        else
+            let trimmed = host.Trim()
+            let withHost = ensureToken trimmed tokens
+            if trimmed.StartsWith("'", StringComparison.Ordinal)
+               || trimmed.StartsWith("*.", StringComparison.Ordinal)
+               || trimmed.Contains("://", StringComparison.Ordinal)
+               || trimmed.EndsWith(":", StringComparison.Ordinal) then
+                withHost
+            else
+                ensureToken ($"{upstreamScheme}://{trimmed}") withHost
+
+    let networkDirectives =
+        HashSet<string>(
+            [| "default-src"
+               "script-src"
+               "script-src-elem"
+               "script-src-attr"
+               "style-src"
+               "style-src-elem"
+               "style-src-attr"
+               "img-src"
+               "font-src"
+               "connect-src"
+               "frame-src"
+               "child-src"
+               "worker-src"
+               "media-src"
+               "manifest-src"
+               "prefetch-src"
+               "object-src"
+               "base-uri"
+               "form-action"
+               "navigate-to" |],
+            StringComparer.OrdinalIgnoreCase)
+
     let ensureAuthoritySources (host: string) (tokens: string list) : string list =
         let withHost =
             if String.IsNullOrWhiteSpace(host) then tokens
@@ -98,7 +135,74 @@ type ProxySchemeHandler
 
         expanded |> dedupeTokens
 
-    let adjustDirective (directive: string) (tokens: string list) (host: string) : string list * string option =
+    let collectPolicyHosts (segments: string[]) : string list =
+        let skipPrefixes =
+            [| "data:"
+               "blob:"
+               "filesystem:"
+               "mediastream:"
+               "appx:"
+               "ws:"
+               "wss:"
+               "http:"
+               "https:"
+               "ftp:"
+               "mailto:"
+               "tel:"
+               "file:"
+               "chrome:"
+               "edge:" |]
+
+        let shouldSkipPrefix (token: string) =
+            skipPrefixes |> Array.exists (fun prefix -> token.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+
+        let candidates = HashSet<string>(StringComparer.OrdinalIgnoreCase)
+
+        let addCandidate (token: string) =
+            let trimmed = token.Trim()
+            if String.IsNullOrWhiteSpace(trimmed) then
+                ()
+            elif trimmed = "*" then
+                ()
+            elif trimmed.StartsWith("'", StringComparison.Ordinal) then
+                ()
+            elif shouldSkipPrefix trimmed then
+                ()
+            elif trimmed.Equals("self", StringComparison.OrdinalIgnoreCase) then
+                ()
+            elif trimmed.Equals("none", StringComparison.OrdinalIgnoreCase) then
+                ()
+            elif trimmed.StartsWith("*.", StringComparison.Ordinal) then
+                candidates.Add(trimmed) |> ignore
+                let bare = trimmed.Substring(2)
+                if bare.Contains(".") then candidates.Add(bare) |> ignore
+            else
+                let mutable uri = Unchecked.defaultof<Uri>
+                if trimmed.Contains("://") && Uri.TryCreate(trimmed, UriKind.Absolute, &uri) then
+                    if not (String.IsNullOrWhiteSpace uri.Host) then
+                        candidates.Add(uri.Host) |> ignore
+                    candidates.Add(trimmed) |> ignore
+                else
+                    let hostPart =
+                        match trimmed.IndexOf('/') with
+                        | idx when idx > 0 -> trimmed.Substring(0, idx)
+                        | _ -> trimmed
+
+                    if hostPart.Contains('.') then
+                        candidates.Add(hostPart) |> ignore
+                    candidates.Add(trimmed) |> ignore
+
+        segments
+        |> Array.iter (fun segment ->
+            let parts = segment.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            if parts.Length > 1 then
+                parts
+                |> Array.skip 1
+                |> Array.iter addCandidate)
+
+        candidates |> Seq.toList
+
+    let adjustDirective (directive: string) (tokens: string list) (host: string) (policyHosts: string list) : string list * string option =
         let lower = directive.ToLowerInvariant()
         let mutable capturedNonce = None
 
@@ -111,7 +215,7 @@ type ProxySchemeHandler
                         capturedNonce <- Some(trimmed.Substring("nonce-".Length))
                 token)
 
-        let finalTokens =
+        let baseWithDirectiveAdjustments =
             match lower with
             | "script-src"
             | "script-src-elem"
@@ -126,15 +230,33 @@ type ProxySchemeHandler
                 baseTokens
                 |> ensureToken "'unsafe-inline'"
                 |> ensureAuthoritySources host
+            | "connect-src"
+            | "frame-src"
+            | "child-src"
+            | "worker-src"
+            | "media-src" ->
+                baseTokens
+                |> ensureAuthoritySources host
             | _ -> baseTokens
+
+        let finalTokens =
+            let withPolicyHosts =
+                if networkDirectives.Contains(lower) then
+                    policyHosts |> List.fold (fun acc hostToken -> addHostToken hostToken acc) baseWithDirectiveAdjustments
+                else baseWithDirectiveAdjustments
+
+            withPolicyHosts |> dedupeTokens
 
         finalTokens, capturedNonce
 
     let adjustCsp (host: string) (value: string) : string * string option =
         let mutable discoveredNonce = None
 
+        let segments = value.Split(';', StringSplitOptions.RemoveEmptyEntries)
+        let policyHosts = collectPolicyHosts segments
+
         let rewritten =
-            value.Split(';', StringSplitOptions.RemoveEmptyEntries)
+            segments
             |> Array.map (fun segment ->
                 let trimmed = segment.Trim()
                 if String.IsNullOrWhiteSpace(trimmed) then
@@ -144,7 +266,7 @@ type ProxySchemeHandler
                     if parts.Length = 0 then trimmed else
                     let directive = parts.[0]
                     let tokens = parts |> Array.skip 1 |> Array.toList
-                    let updatedTokens, nonce = adjustDirective directive tokens host
+                    let updatedTokens, nonce = adjustDirective directive tokens host policyHosts
                     match nonce, discoveredNonce with
                     | Some n, None -> discoveredNonce <- Some n
                     | _ -> ()
