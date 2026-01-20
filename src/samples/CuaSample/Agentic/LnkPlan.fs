@@ -44,7 +44,7 @@ module LnkPlan =
         return ""
     }
     
-    let tasks = [
+    let linkedInTasks = [
         {   id = Tid "intro"
             task = Cu_Interactive (Some (Target "https://linkedin.com"), "Login, then click Continue")
             description = "introduction"
@@ -55,10 +55,23 @@ module LnkPlan =
             description = "find gen ai posts and save the summaries to memory using save_memory tool"
             toolNames = [ToolName "save_memory"]                       
         }               
-    ]            
-   
+    ]
+    
+    let twitterTasks = [
+        {   id = Tid "intro"
+            task = Cu_Interactive (Some (Target "https://x.com"), "Login, then click Continue")
+            description = "introduction"
+            toolNames = []
+        }
+        {   id = Tid "find_gen_ai_posts"
+            task = Cu_Cua None
+            description = "search for posts related to NeuroSymbolic AI and save them to memory"
+            toolNames = [ToolName "save_memory"]                       
+        }               
+    ]        
     
     let testPlan =
+        let tasks = twitterTasks
         {
             tasks = tasks |> List.map (fun x ->x.id,x) |> Map.ofList
             flow = FsPlanFlow.Sequential (tasks |> List.map _.id)
