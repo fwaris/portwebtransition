@@ -59,7 +59,7 @@ module LnkPlan =
     
     let tasks = [
         {   id = Tid "intro"
-            task = Cu_Interactive (Some (Target "https://twitter.com"), "Login to LinkedIn")
+            task = Cu_Interactive (Some (Target "appx://linkedin.com"), "Login to LinkedIn")
             description = "introduction"
             toolNames = []
         }

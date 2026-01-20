@@ -102,8 +102,7 @@ module UiOps =
                 let js2 = """(function(){ return JSON.stringify({ ok: ("__fsDriver" in window) }); })();"""
                 let js3 = """(function(){ return JSON.stringify({ ok: true }); })();"""
                 
-                let f() = Model.webviewCache.Value.EvaluateJavaScriptAsync(js3)
-                let! v = MainThread.InvokeOnMainThreadAsync<string>(f) |> Async.AwaitTask
+                let! v = FsPlay.Service.evalJs (Model.webviewCache.Value) js3 |> Async.AwaitTask
                 debug $"v = {v}"
                 return ""
             }

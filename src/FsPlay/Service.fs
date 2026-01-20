@@ -40,7 +40,12 @@ module Service =
     let createWebViewWrapper(wv:WebView) =
             {new WebViewWrapper with
                 member this.CaptureAsync() = capture(wv)
-                member this.EvaluateJavaScriptAsync(js) = wv.EvaluateJavaScriptAsync(js)
+                member this.EvaluateJavaScriptAsync(js) =
+#if IOS || MACCATALYST
+                    FsPlay.ios.Service.evalJs wv js
+#else
+                    wv.EvaluateJavaScriptAsync(js)
+#endif
                 member this.GoBack() = wv.GoBack()
                 member this.GoForward() = wv.GoForward()
                 member this.CurrentDimensions() = dimensions(wv)
