@@ -114,9 +114,72 @@ function scrollByPoint(x, y, scrollX, scrollY) {
 }
 
 
+  function isEditableElement(element) {
+    if (!element) return false;
+    if (element.isContentEditable) return true;
+    if (typeof element.value === 'string' && element.readOnly !== true) return true;
+    return false;
+  }
+
+  function resolveTypingTarget() {
+    const active = document.activeElement;
+    if (isEditableElement(active)) {
+      return active;
+    }
+    const shadowRoot = active && active.shadowRoot;
+    if (shadowRoot && isEditableElement(shadowRoot.activeElement)) {
+      return shadowRoot.activeElement;
+    }
+    return null;
+  }
+
+  const focusableSelector = 'input, textarea, select, button, [contenteditable], [tabindex]';
+
+  function isFocusable(element) {
+    if (!element || typeof element !== 'object') return false;
+    if (element.disabled || element.getAttribute?.('disabled') !== null) return false;
+    if (element.isContentEditable) return true;
+    if (typeof element.tabIndex === 'number' && element.tabIndex >= 0) return true;
+    const tag = element.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON';
+  }
+
+  function findFocusable(element) {
+    if (!element) return null;
+    if (isFocusable(element)) return element;
+    if (element.shadowRoot) {
+      const active = element.shadowRoot.activeElement;
+      if (isFocusable(active)) return active;
+      const shadowDesc = element.shadowRoot.querySelector(focusableSelector);
+      if (isFocusable(shadowDesc)) return shadowDesc;
+    }
+    if (element.matches?.('label[for]')) {
+      const targetId = element.getAttribute('for');
+      if (targetId) {
+        const labelled = document.getElementById(targetId);
+        if (isFocusable(labelled)) return labelled;
+      }
+    }
+    const fallback = element.querySelector?.(focusableSelector);
+    if (isFocusable(fallback)) return fallback;
+    return null;
+  }
+
+  function ensureFocus(element) {
+    const focusTarget = findFocusable(element);
+    if (!focusTarget || typeof focusTarget.focus !== 'function') return;
+    try {
+      focusTarget.focus({ preventScroll: true });
+    } catch (err) {
+      try {
+        focusTarget.focus();
+      } catch (e) { /* ignore */ }
+    }
+  }
+
   // call: await webView.EvaluateJavaScriptAsync($"({typeIntoActiveElement.toString()})('{text}', {delay})");
 function typeIntoActiveElement(text, delayMs = 10) {
-  const el = document.activeElement;
+  const el = resolveTypingTarget();
   if (!el) return false;
   const str = String(text ?? "");
 
@@ -149,8 +212,10 @@ function typeIntoActiveElement(text, delayMs = 10) {
       setValueWithSetter(element, before + ch + after);
       const pos = before.length + ch.length;
       if (element.setSelectionRange) element.setSelectionRange(pos, pos);
-    } else {
+    } else if (element.isContentEditable) {
       element.textContent = (element.textContent ?? "") + ch;
+    } else {
+      return;
     }
 
     // InputEvent with data and inputType
@@ -177,7 +242,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
     function step() {
       if (i >= str.length) {
         // final change event to commit
-        element.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
         resolve(true);
         return;
       }
@@ -238,7 +303,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
   window.__fsDriver = {
     clickAt: function (pageX, pageY, buttonCode) {
       const client = clampToViewport(toClientPoint(pageX, pageY));
-      const element = document.elementFromPoint(client.clientX, client.clientY);
+      const element = deepElementFromPoint(client.clientX, client.clientY);
       if (!element) {
         return false;
       }
@@ -246,6 +311,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
       const init = mouseInit(client, buttonCode || 0, 1);
       fireMouse(element, 'mousemove', init);
       fireMouse(element, 'mousedown', init);
+      ensureFocus(element);
       fireMouse(element, 'mouseup', mouseInit(client, buttonCode || 0, 0));
       fireMouse(element, 'click', init);
       return true;
@@ -253,13 +319,14 @@ function typeIntoActiveElement(text, delayMs = 10) {
 
     doubleClick: function (pageX, pageY) {
       const client = clampToViewport(toClientPoint(pageX, pageY));
-      const element = document.elementFromPoint(client.clientX, client.clientY);
+      const element = deepElementFromPoint(client.clientX, client.clientY);
       if (!element) {
         return false;
       }
       const init = mouseInit(client, 0, 1);
       fireMouse(element, 'mousemove', init);
       fireMouse(element, 'mousedown', init);
+      ensureFocus(element);
       fireMouse(element, 'mouseup', mouseInit(client, 0, 0));
       fireMouse(element, 'click', init);
       fireMouse(element, 'dblclick', init);
@@ -268,7 +335,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
 
     moveTo: function (pageX, pageY) {
       const client = clampToViewport(toClientPoint(pageX, pageY));
-      const element = document.elementFromPoint(client.clientX, client.clientY);
+      const element = deepElementFromPoint(client.clientX, client.clientY);
       if (!element) {
         return false;
       }
@@ -279,8 +346,8 @@ function typeIntoActiveElement(text, delayMs = 10) {
     dragDrop: function (startX, startY, endX, endY) {
       const start = clampToViewport(toClientPoint(startX, startY));
       const end = clampToViewport(toClientPoint(endX, endY));
-      const source = document.elementFromPoint(start.clientX, start.clientY);
-      const target = document.elementFromPoint(end.clientX, end.clientY);
+      const source = deepElementFromPoint(start.clientX, start.clientY);
+      const target = deepElementFromPoint(end.clientX, end.clientY);
       if (!source || !target) {
         return false;
       }
@@ -314,7 +381,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
     },
 
     typeText: function (text) {
-      const target = document.activeElement;
+      const target = resolveTypingTarget();
       if (!target) {
         return false;
       }

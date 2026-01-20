@@ -187,7 +187,7 @@ module CuaTaskAgent =
             | Ag_Task_Run (t,context)  ->
                 Log.info $"[CuaTaskAgent] Started task {t.id}"
                 let! state = startCuaLoop state context t.description
-                return {state with usage=Map.empty} //reset usage for a new task
+                return {state with usage=Map.empty; task=Some t} //reset usage for a new task
             | Ag_Task_Continue cr when state.cuaLoopCount >= MAX_CUA_LOOP ->
                 Log.info $"[CuaTaskAgent] max cua loop count exceeded {state.cuaLoopCount}. Restarting task"
                 state.bus.PostToAgent (Ag_Task_Restart cr.context)

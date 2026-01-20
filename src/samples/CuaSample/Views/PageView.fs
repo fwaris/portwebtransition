@@ -74,7 +74,7 @@ module PageView =
         |> Program.withSubscription(subscriptions appMsgDispatcher)
 
     let headerView (model:Model) :WidgetBuilder<Msg,IFabGrid> =
-        (Grid([Dimension.Star; Dimension.Star;],[Dimension.Absolute 50.0]) {
+        (Grid([Dimension.Stars 2.0; Dimension.Stars 1.0;],[Dimension.Absolute 50.0]) {
             (HStack(){
                 Button(UiOps.playIcon model, UiOps.playMsg model)
                     .font(size=20.0, fontFamily=C.FA)
@@ -89,9 +89,9 @@ module PageView =
                 | None -> ()
                 match model.interactiveTask with
                 | Some d ->
-                    Label(d |> shorten 75)
+                    Label(d |> shorten 50)
                         .verticalTextAlignment(TextAlignment.Center)                    
-                        .lineBreakMode(LineBreakMode.WordWrap)
+                        .lineBreakMode(LineBreakMode.WordWrap)                        
                     Button("Continue", DoneInteractiveTask)                   
                         .background(Colors.Transparent)
                         .centerVertical()

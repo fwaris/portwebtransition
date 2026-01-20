@@ -102,7 +102,7 @@ module UiOps =
                 //let js2 = """(function(){ return JSON.stringify({ ok: ("__fsDriver" in window) }); })();"""
                 let js3 = """(function(){ return JSON.stringify({ ok: true }); })();"""
                 let js4 = """(function () {
-    return JSON.stringify({ ok: !!(window.__fsDriver && window.__fsDriver.clickAt(310, 25, 0)) });
+    return JSON.stringify({ ok: !!(window.__fsDriver && window.__fsDriver.clickAt(320, 26, 0)) });
   })();
 """                
                 let! v = FsPlay.Service.evalJs (Model.webviewCache.Value) js4 |> Async.AwaitTask
