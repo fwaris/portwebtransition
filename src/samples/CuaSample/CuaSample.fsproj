@@ -145,5 +145,9 @@
 	  <ProjectReference Include="..\..\RTFlow\RTFlow.fsproj" />
 	</ItemGroup>
 	
+	<ItemGroup>
+	  <None Include="readme.md" />
+	</ItemGroup>
+	
 	
 </Project>

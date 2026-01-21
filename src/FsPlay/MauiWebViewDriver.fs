@@ -306,7 +306,6 @@ module MauiWebViewDriver =
             }
           member _.pressKeys keys =
             async {
-              let keys = DriverUtils.canonicalize keys
               match keys with
               | [] -> return ()
               | _ ->

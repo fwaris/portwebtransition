@@ -82,20 +82,24 @@ module PageView =
                     .centerVertical()
                     .alignStartHorizontal()
                 match model.action with
-                | Some a -> 
+                | Some a when model.interactiveTask.IsNone -> 
                     Label(a)
                         .verticalTextAlignment(TextAlignment.Center)                    
                         .lineBreakMode(LineBreakMode.WordWrap)
-                | None -> ()
+                | _ -> ()
                 match model.interactiveTask with
                 | Some d ->
-                    Label(d |> shorten 50)
-                        .verticalTextAlignment(TextAlignment.Center)                    
-                        .lineBreakMode(LineBreakMode.WordWrap)                        
-                    Button("Continue", DoneInteractiveTask)                   
-                        .background(Colors.Transparent)
-                        .centerVertical()
-                        .alignStartHorizontal()
+                    FlexLayout() {
+                        Label(d |> shorten 50)
+                            .verticalTextAlignment(TextAlignment.Center)                    
+                            .lineBreakMode(LineBreakMode.WordWrap)
+                            .centerVertical()
+                            .alignStartHorizontal()
+                        Button(Icons.next, DoneInteractiveTask)                   
+                            .background(Colors.Transparent)
+                            .centerVertical()
+                            .alignEndHorizontal()
+                    }
                 | None -> ()
              })
                 .isClippedToBounds(true)

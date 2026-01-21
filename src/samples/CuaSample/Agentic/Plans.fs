@@ -67,11 +67,26 @@ module Plans =
             task = Cu_Cua None
             description = "search for posts related to NeuroSymbolic AI and save the summaries usign the `save_summary` tool. Scroll down to see relevant posts"
             toolNames = [ToolName "save_summary"]                       
-        }               
-    ]        
+        }        
+    ]
     
+    let redditTasks = [
+        {   id = Tid "intro"
+            task = Cu_Interactive (Some (Target "https://reddit.com"), "Login, then click Continue")
+            description = "introduction"
+            toolNames = []
+        }
+        {   id = Tid "find_gen_ai_posts"
+            task = Cu_Cua None
+            description = """Find posts related to 'neurosymbolic ai'. 
+Make sure to click the 'Ask' button after entering a search term.
+Summarize each thread and the `save_summary` tool to save the thread summary.
+"""
+            toolNames = [ToolName "save_summary"]                       
+        }               
+    ]          
     let testPlan =
-        let tasks = amazonTasks//twitterTasks
+        let tasks = redditTasks //amazonTasks //twitterTasks
         {
             tasks = tasks |> List.map (fun x ->x.id,x) |> Map.ofList
             flow = FsPlanFlow.Sequential (tasks |> List.map _.id)

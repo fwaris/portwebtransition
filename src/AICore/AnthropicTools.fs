@@ -13,7 +13,7 @@ type Coordinate = {x:uint; y:uint}
 type ScrollDirection = Up | Down | Left | Right
 ///Parsed and structured computer call (obtained after parsing the raw Anthropic computer function call)
 type AnthropicAction = 
-    | Key of string 
+    | Key of string list
     | Hold_Key of {|key:string; duration:uint|}
     | Type of string
     | MouseMove of Coordinate
@@ -91,7 +91,7 @@ module Parser =
             let str = System.Text.Json.JsonSerializer.Deserialize<CuaAction>(j)
             let coordinate = coordinate2 js
             match str with 
-            | CuaAction.key -> Key (js.GetProperty("text").GetString())                
+            | CuaAction.key -> Key [(js.GetProperty("text").GetString())]                
             | CuaAction.``type`` -> Type (js.GetProperty("text").GetString())
             | CuaAction.mouse_move -> MouseMove coordinate
             | CuaAction.left_click -> Left_Click coordinate
@@ -114,7 +114,7 @@ module Parser =
     
     let parseActions js = 
         match parseActionBase js with 
-        | Some (Key str) -> str.Split() |> Array.map Key |> Array.toList
+        | Some (Key xs) -> [KeyUtils.canonicalize xs |> Key]
         | Some x         -> [x]
         | None           -> []
 
@@ -135,7 +135,7 @@ module Parser =
 
     ///Convert Action to a representation that the IUIDriver (playwright) can understand
     let mapToUIDriverAction  = function
-        | Key k -> Action.Keypress {|keys=[k]|}
+        | Key ks -> Action.Keypress {|keys=ks|}
         | Hold_Key parms -> Action.Keypress {|keys=[parms.key]|} //does not make sense for web pages
         | Type s -> Action.Type {|text=s|}
         | MouseMove c -> Action.Move {|x= int c.x; y= int c.y|}

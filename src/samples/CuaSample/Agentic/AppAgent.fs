@@ -36,12 +36,13 @@ module AppAgent =
                           previews |> List.iter ss.Send 
                           do! Async.Sleep 1000                            //wait for the UI to display click                        
                     do! acts |> AsyncSeq.ofSeq |> AsyncSeq.iterAsync (fun a -> async {
-                              let a' =
+                              let a =
                                   match a with
-                                  | Action.Keypress k when k.keys = ["alt";"Left"] -> Action.Click {|button=Button.Back; x=0;y=0|}
+                                  | Action.Keypress k when k.keys = [K.Alt;K.ArrowLeft] ->
+                                      Action.Click {|button=Button.Back; x=0; y=0|}
                                   | a -> a
-                              Log.info (a'.toString())
-                              do! FsPlay.Actions.perform ss.driver a'
+                              Log.info (a.toString())
+                              do! FsPlay.Actions.perform ss.driver a
                          })
                     let callRslt = FunctionResultContent(fc.CallId, "{ \"status\": \"done\" }") :> AIContent //need response for each call
                     return (callRslt::acc)

@@ -4,6 +4,7 @@ module Icons =
     let mic = "\ue029"
     let power = "\ue8ac"
     let play = "\ue037"
+    let next = "\u23ED"
     let stop = "\ue047"
     let cancel = "\ue5c9"    
     let link_off = "\ue16f"
