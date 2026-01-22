@@ -107,9 +107,13 @@ module FsPlan =
         let notInFlow = Set.difference allTasksIds allFlowTids
         let notInTask = Set.difference allFlowTids allTasksIds
         if notInFlow.Count > 0 then
-            failwith $"The following task ids are not referenced in the flow {notInFlow}"
+            let msg = $"The following task ids are not referenced in the flow {notInFlow}" 
+            Log.error msg
+            failwith msg
         if notInTask.Count > 0 then
-            failwith $"The following task ids are not referenced in the flow {notInFlow}"
+            let msg = $"The following task ids are not referenced in the flow {notInFlow}"
+            Log.error msg
+            failwith msg
 
     let validatePlan (plan:FsPlan<_>) =
         validateFlow plan.flow
