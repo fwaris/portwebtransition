@@ -11,7 +11,6 @@ type NavigationRoute =
     | Main
     | Keys
     | ArticleSummaries of ArticleSummary list
-    | Stats of Chart list
 
 /// The NavigationController is used to notify the intention to navigate to a new page (or go back).
 /// We listen to it in a Cmd that will dispatch a message to the root of the application to trigger the actual navigation.
@@ -42,8 +41,6 @@ module Navigation =
     let navigateToSummaries nav summaries =
         navigateTo nav (NavigationRoute.ArticleSummaries summaries)
 
-    let navigateToStats nav histogram =
-        navigateTo nav (NavigationRoute.Stats histogram)
         
 /// The NavigationStack represents the history of the navigation.
 /// This is a simple stack of pages that the app will use to remember and display the pages needed.

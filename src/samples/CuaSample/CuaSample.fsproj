@@ -68,11 +68,9 @@
 		<Compile Include="Model\UiOps.fs" />
 		<Compile Include="Model\Update.fs" />
 		<Compile Include="Views/ViewExtensions.fs" />
-		<Compile Include="Views\SfExtensions.fs" />
 		<Compile Include="Views\CredsView.fs" />
 		<Compile Include="Views\PageView.fs" />		
 		<Compile Include="Views\SummaryView.fs" />		
-		<Compile Include="Views\StatsView.fs" />		
 		<Compile Include="App\App.fs" />
 		<Compile Include="App\MauiProgram.fs" />
 	</ItemGroup>

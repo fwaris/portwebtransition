@@ -39,4 +39,5 @@ module Icons =
     let fa_stop = "\uf04d"
     let fa_bars = "\uf0c9"
     let fa_reset = "\uf0e2"
-    
+    let fa_table_list = "\uf00b"
+    let fa_test = "\uf0c3"

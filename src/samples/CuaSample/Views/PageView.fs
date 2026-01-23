@@ -107,8 +107,8 @@ module PageView =
                 .alignStartHorizontal()
                 .gridColumn(0)               
             (HStack(){
-                Button(Icons.code_blocks,TestSomething)
-                    .font(size=20.0, fontFamily=C.FONT_SYMBOLS)
+                Button(Icons.fa_test,TestSomething)
+                    .font(size=20.0, fontFamily=C.FA)
                     .background(Colors.Transparent)
                     .textColor(Colors.Magenta)
                     .centerVertical()
@@ -139,12 +139,7 @@ module PageView =
         (VStack() {
             (Grid([Dimension.Star],[Dimension.Star;Dimension.Star; Dimension.Star; Dimension.Star; Dimension.Star])) {
                 Button(Icons.fa_xmark,ToggleNavBar).font(size=20,fontFamily=C.FA).alignEndHorizontal().margin(10)
-                Button(Icons.fa_chart,Nav ViewStats)
-                    .font(size=20.0, fontFamily=C.FA)
-                    .textColor(Colors.Magenta)
-                    .background(Colors.Transparent)
-                    .gridRow(1)
-                Button(Icons.fa_user_pen,Nav ViewSummary)
+                Button(Icons.fa_table_list,Nav ViewSummary)
                     .font(size=20.0, fontFamily=C.FA)
                     .background(Colors.Transparent)
                     .textColor(Colors.Magenta)

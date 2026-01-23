@@ -78,8 +78,7 @@ and Msg =
     | ViewCreds
     | Nav of Msg
     | MenuSelect of int
-    | ViewSummary
-    | ViewStats
+    | ViewSummary   
     | Active
     | InActive
     | BackButtonPressed
@@ -94,11 +93,7 @@ module Model =
 
     
     let settingsValid () =
-        let a = Settings.Environment.apiKey() |> isEmpty
-        let b = Settings.Environment.userid() |> isEmpty
-        let c = Settings.Environment.pwd() |> isEmpty
-        let d = Settings.Environment.url() |> isEmpty
-        (a || b || c || d) |> not
+        Settings.Environment.apiKey() |> isEmpty |> not
         
     let rec startPlan driver previewActions poster = async {
         let cfg = Utils.configuration.Value

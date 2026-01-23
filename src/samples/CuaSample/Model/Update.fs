@@ -38,8 +38,7 @@ module Update =
         | SetFlow f -> {model with flow = f}, Cmd.none
         | CheckPreview b -> model.settings.PreviewClicks <- b; model,Cmd.none
         | ViewCreds -> model, Navigation.navigateToSettings nav
-        | ViewSummary -> model, Navigation.navigateToSummaries nav model.summaries
-        | ViewStats -> model, Cmd.none
+        | ViewSummary -> model, Navigation.navigateToSummaries nav model.summaries      
         | DoneInteractiveTask -> doneTask model
         | Nav msg -> {model with isOpenNavBar=false}, Cmd.ofMsg msg
         | WebviewInteraction e -> model, Cmd.none //Cmd.ofMsg Highlight
