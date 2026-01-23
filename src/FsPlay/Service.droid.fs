@@ -86,17 +86,19 @@ module internal Service =
                 return raise ex
         }
     
-    let private capture_(wv:AWebView)  : Task<byte[]*(int*int)*string> = 
+    let private capture_(wv:AWebView)  : Task<byte[]*(int*int)*string> =
         task {
             try
                 let! (sw,sh),(bw,bh) = dimensions(wv)
                 let scaleX = float32 sw / float32 bw
-                let scaleY = float32 sh / float32 bh                
+                let scaleY = float32 sh / float32 bh
                 use bmp = Bitmap.CreateBitmap(sw, sh, Bitmap.Config.Argb8888)
                 use canvas = new Canvas(bmp)
-                canvas.Translate(-float32 wv.ScrollX, -float32 wv.ScrollY)
+                // Scale scroll offset to match the bitmap coordinate space
+                // Without this, the captured region is wrong when page is scrolled
+                canvas.Translate(-float32 wv.ScrollX * scaleX, -float32 wv.ScrollY * scaleY)
                 canvas.Scale(scaleX, scaleY)
-                wv.Draw(canvas)                
+                wv.Draw(canvas)
                 let ms = new MemoryStream()
                 let! _ = bmp.CompressAsync(Bitmap.CompressFormat.Jpeg, 60, ms)
                 ms.Position <- 0L
