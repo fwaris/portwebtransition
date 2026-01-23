@@ -9,11 +9,39 @@ module Bootstrap =
 
 // ------------------------------------------------------------
 // Find deepest element at (x,y), descending through shadow DOM
+// Handles Android WebView quirk where elementFromPoint may use
+// document coordinates instead of viewport coordinates when scrolled
 // ------------------------------------------------------------
 function deepElementFromPoint(x, y, root) {
     if (!root) root = document;
 
-    const el = root.elementFromPoint(x, y);
+    let el = root.elementFromPoint(x, y);
+
+    // On Android WebView, elementFromPoint may use document coordinates
+    // when the page is scrolled. Detect this by checking if the returned
+    // element's bounding rect actually contains the viewport point.
+    if (el && root === document && (window.scrollX !== 0 || window.scrollY !== 0)) {
+        const rect = el.getBoundingClientRect();
+        const pointInRect = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+
+        if (!pointInRect) {
+            // Element doesn't contain the viewport point - likely Android quirk
+            // Try with scroll-adjusted coordinates (document/page coordinates)
+            const adjustedX = x + window.scrollX;
+            const adjustedY = y + window.scrollY;
+            const adjustedEl = root.elementFromPoint(adjustedX, adjustedY);
+            if (adjustedEl) {
+                el = adjustedEl;
+                // For shadow DOM descent, also use adjusted coordinates
+                if (el.shadowRoot) {
+                    const deeper = deepElementFromPoint(adjustedX, adjustedY, el.shadowRoot);
+                    return deeper || el;
+                }
+                return el;
+            }
+        }
+    }
+
     if (!el) return null;
 
     if (el.shadowRoot) {
