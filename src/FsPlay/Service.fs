@@ -15,13 +15,13 @@ module Service =
     #endif
 #endif
 
-    let dimensions (wv:WebView) =           
+    let dimensions (wv:WebView) =
 #if IOS || MACCATALYST
         FsPlay.ios.Service.currentDimensions wv
 #else
     #if ANDROID
         FsPlay.droid.Service.currentDimensions wv
-    #else 
+    #else
         task {failwith "unsupported platform"}
     #endif
 #endif
@@ -51,11 +51,11 @@ module Service =
                 member this.CurrentDimensions() = dimensions(wv)
                 member this.Reload() = wv.Reload()
                 member this.CanGoBack = wv.CanGoBack
-                member this.Source            
+                member this.Source
                     with get() =
                         match wv.Source with
                         | :? UrlWebViewSource as s -> s.Url
-                        | _ -> ""                        
+                        | _ -> ""
                     and set(value) = wv.Source <- UrlWebViewSource(Url=value)
                 member this.CanGoForward = wv.CanGoForward
             }

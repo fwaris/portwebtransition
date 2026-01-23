@@ -138,5 +138,5 @@ module internal Service =
             let f() = wv.EvaluateJavaScriptAsync(js)
             return! MainThread.InvokeOnMainThreadAsync<string>(f)
         }
-                     
+
 #endif

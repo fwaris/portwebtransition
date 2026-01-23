@@ -107,8 +107,8 @@ module PageView =
                 .alignStartHorizontal()
                 .gridColumn(0)               
             (HStack(){
-                Button(Icons.code_blocks,TestSomething)
-                    .font(size=20.0, fontFamily=C.FONT_SYMBOLS)
+                Button(Icons.fa_test,TestSomething)
+                    .font(size=20.0, fontFamily=C.FA)
                     .background(Colors.Transparent)
                     .textColor(Colors.Magenta)
                     .centerVertical()

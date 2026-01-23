@@ -4,9 +4,9 @@ Demonstrates the use of a LLM as a computer-use-agent (CUA) to control an embedd
 See the [root readme.md](/readme.md) for additional context.
 br
 
-The default 'plan' is to find a cell phone case on Amazon.
+The default 'plan' is find 'neurosymbolic ai' related content.
 
-Alternate [plans](/Agentic/Plans.fs) exist for finding 'neurosymbolic ai' related content on Twitter (X) and Reddit. They can be set to run via a minor code change.
+Alternate [plans](/Agentic/Plans.fs) exist for Reddit and Amazon. They can be set to run via a minor code change.
 
 Click the triangle icon to start the plan.
 

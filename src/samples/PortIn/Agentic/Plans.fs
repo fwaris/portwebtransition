@@ -158,7 +158,6 @@ If lost, use the 'home' tool to get back to the home page.
             description = $"""Get billing zip code and account number. When found, save these using `save_billing_zip` and `save_account_number` tools, respectively.
 Try the `person` icon to find the account settings overview area.
 Then use Contact & Billing and manage addresses to find the zip.
-For forms, you may have to click in the middle of the form and then scroll to simulate touch-based scroll.
 {noWaitInstructions}"""
             toolNames = [ToolName "save_billing_zip"; ToolName "save_account_number"]
         }
@@ -171,7 +170,6 @@ Use tool `located_transfer_pin_page` to notify that the page has been located.
 You may use the search tool (magnifying glass at top left) and enter `generate transfer pin` to quickly locate the page.
 Scroll down in search results to find the 'number transfer pin` page.
 There may be distractive, filler content in the top part of the search results.
-Drag the scroll bar to scroll down.
 {noWaitInstructions}"""
             toolNames = [ToolName "located_transfer_pin_page"]
         }
@@ -191,7 +189,7 @@ Drag the scroll bar to scroll down.
 
     /// Create the PortIn plan with tasks in sequence
     let createPortInPlan (cfg:PlanConfig) =
-        let inset = set [Tid "login"; Tid "transfer_pin"]
+        let inset = set [Tid "login"; Tid "transfer_pin"; Tid "account_zip"]
         let tasks = createPortInTasks cfg
         let tasks = tasks |> List.filter  (fun x -> inset.Contains x.id)        
         let taskSequence = tasks |> List.map _.id

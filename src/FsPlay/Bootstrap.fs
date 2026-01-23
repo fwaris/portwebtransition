@@ -36,6 +36,93 @@ function isInsideShadow(el) {
 }
 
 // ------------------------------------------------------------
+// Check if an element can actually scroll
+// ------------------------------------------------------------
+function canElementScroll(el) {
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    const overflowY = style.overflowY;
+    const overflowX = style.overflowX;
+
+    // Check if overflow allows scrolling
+    const canScrollY = overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay";
+    const canScrollX = overflowX === "auto" || overflowX === "scroll" || overflowX === "overlay";
+
+    // Check if there's content to scroll
+    const hasVerticalScroll = el.scrollHeight > el.clientHeight;
+    const hasHorizontalScroll = el.scrollWidth > el.clientWidth;
+
+    return (canScrollY && hasVerticalScroll) || (canScrollX && hasHorizontalScroll);
+}
+
+// ------------------------------------------------------------
+// Find the main scrollable container in the document
+// This searches the entire DOM for elements that are likely scroll containers
+// ------------------------------------------------------------
+function findMainScrollContainer() {
+    // Check document.scrollingElement first - but only if it can scroll
+    const docScroller = document.scrollingElement;
+    if (docScroller && canElementScroll(docScroller)) {
+        return docScroller;
+    }
+
+    // Check body
+    if (canElementScroll(document.body)) {
+        return document.body;
+    }
+
+    // Search for elements that have scrollable overflow and significant scroll height
+    // These are common patterns in SPAs and modern web apps
+    const candidates = document.querySelectorAll('div, main, section, article, [role="main"]');
+    let bestCandidate = null;
+    let bestScrollHeight = 0;
+
+    for (const el of candidates) {
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+
+        // Must have scrollable overflow
+        if (overflowY !== "auto" && overflowY !== "scroll" && overflowY !== "overlay") {
+            continue;
+        }
+
+        // Must have content exceeding its height
+        if (el.scrollHeight <= el.clientHeight) {
+            continue;
+        }
+
+        // Prefer elements with larger scroll areas (more likely to be the main container)
+        const scrollableArea = el.scrollHeight - el.clientHeight;
+        if (scrollableArea > bestScrollHeight) {
+            bestScrollHeight = scrollableArea;
+            bestCandidate = el;
+        }
+    }
+
+    if (bestCandidate) {
+        return bestCandidate;
+    }
+
+    // Last resort: find any element with scrollHeight > clientHeight + threshold
+    // even if overflow is "visible" - some frameworks handle scroll differently
+    const threshold = 100;
+    for (const el of candidates) {
+        if (el.scrollHeight > el.clientHeight + threshold) {
+            // Try to scroll it directly to see if it works
+            const before = el.scrollTop;
+            el.scrollTop = before + 1;
+            if (el.scrollTop !== before) {
+                el.scrollTop = before; // Reset
+                return el;
+            }
+        }
+    }
+
+    // Absolute fallback
+    return document.scrollingElement || document.documentElement;
+}
+
+// ------------------------------------------------------------
 // Find nearest scrollable ancestor (including shadow hosts)
 // Special case: Ionic ion-content → shadowRoot → .inner-scroll
 // ------------------------------------------------------------
@@ -47,19 +134,11 @@ function findScrollableParent(el) {
         // Ionic special case
         if (node.tagName === "ION-CONTENT" && node.shadowRoot) {
             const inner = node.shadowRoot.querySelector(".inner-scroll");
-            if (inner) return inner;
+            if (inner && canElementScroll(inner)) return inner;
         }
 
         // Generic scrollable container check
-        const style = window.getComputedStyle(node);
-        const overflow = style.overflow;
-        const overflowY = style.overflowY;
-
-        const scrollable =
-            (overflow === "auto" || overflow === "scroll" ||
-             overflowY === "auto" || overflowY === "scroll");
-
-        if (scrollable && node.scrollHeight > node.clientHeight) {
+        if (canElementScroll(node)) {
             return node;
         }
 
@@ -71,8 +150,27 @@ function findScrollableParent(el) {
         }
     }
 
-    // Fallback to document scroll element
-    return document.scrollingElement || document.documentElement;
+    // Fallback: search for the main scroll container in the document
+    return findMainScrollContainer();
+}
+
+// ------------------------------------------------------------
+// Simulate wheel event on an element
+// ------------------------------------------------------------
+function simulateWheelEvent(target, deltaX, deltaY) {
+  if (!target) return false;
+
+  const wheelEvent = new WheelEvent('wheel', {
+    deltaX: deltaX,
+    deltaY: deltaY,
+    deltaMode: 0, // DOM_DELTA_PIXEL
+    bubbles: true,
+    cancelable: true,
+    view: window
+  });
+
+  target.dispatchEvent(wheelEvent);
+  return true;
 }
 
 // ------------------------------------------------------------
@@ -93,15 +191,63 @@ function performScroll(target, scrollX, scrollY) {
   const deltaX = normalizeDelta(scrollX);
   const deltaY = normalizeDelta(scrollY);
 
+  // Capture position before scroll (both target and window)
+  const beforeTop = target.scrollTop || 0;
+  const beforeLeft = target.scrollLeft || 0;
+  const beforeWindowY = window.scrollY;
+  const beforeWindowX = window.scrollX;
+
+  // Method 1: Use scrollBy/scrollTo on target (instant behavior)
   if (typeof target.scrollBy === "function") {
-    target.scrollBy({ left: deltaX, top: deltaY, behavior: "smooth" });
+    target.scrollBy({ left: deltaX, top: deltaY, behavior: "instant" });
   } else {
-    const nextLeft = (target.scrollLeft || 0) + deltaX;
-    const nextTop = (target.scrollTop || 0) + deltaY;
-    target.scrollTo({ left: nextLeft, top: nextTop, behavior: "smooth" });
+    const nextLeft = beforeLeft + deltaX;
+    const nextTop = beforeTop + deltaY;
+    target.scrollTo({ left: nextLeft, top: nextTop, behavior: "instant" });
   }
 
-  return "scrolled";
+  // Check if scroll worked
+  let afterTop = target.scrollTop || 0;
+  let afterLeft = target.scrollLeft || 0;
+
+  if (afterTop !== beforeTop || afterLeft !== beforeLeft) {
+    return "scrolled";
+  }
+
+  // Method 2: Direct property assignment (some elements respond to this)
+  target.scrollTop = beforeTop + deltaY;
+  target.scrollLeft = beforeLeft + deltaX;
+
+  afterTop = target.scrollTop || 0;
+  afterLeft = target.scrollLeft || 0;
+
+  if (afterTop !== beforeTop || afterLeft !== beforeLeft) {
+    return "scrolled-direct";
+  }
+
+  // Method 3: Use window.scrollBy (works when target is html/body but element scroll doesn't)
+  window.scrollBy({ left: deltaX, top: deltaY, behavior: "instant" });
+
+  if (window.scrollY !== beforeWindowY || window.scrollX !== beforeWindowX) {
+    return "scrolled-window";
+  }
+
+  // Method 4: Simulate wheel event (triggers event listeners)
+  simulateWheelEvent(target, deltaX, deltaY);
+
+  // Check if wheel event handler scrolled anything
+  afterTop = target.scrollTop || 0;
+  afterLeft = target.scrollLeft || 0;
+
+  if (afterTop !== beforeTop || afterLeft !== beforeLeft) {
+    return "scrolled-wheel";
+  }
+
+  if (window.scrollY !== beforeWindowY || window.scrollX !== beforeWindowX) {
+    return "scrolled-wheel-window";
+  }
+
+  return "scroll-no-change";
 }
 
 // ------------------------------------------------------------
@@ -109,21 +255,68 @@ function performScroll(target, scrollX, scrollY) {
 // ------------------------------------------------------------
 function scrollByPoint(x, y, scrollX, scrollY) {
     const el = deepElementFromPoint(x, y);
-    if (!el) {
-        return {
-            error: "no-element-under-point"
-        };
+
+    // Determine if we have a meaningful starting point for ancestor search
+    // If x,y is near origin or element is html/body, skip ancestor walk
+    const isOriginPoint = (x <= 1 && y <= 1);
+    const isRootElement = !el || el === document.documentElement || el === document.body || el.tagName === "HTML" || el.tagName === "BODY";
+
+    let scrollTarget;
+    let insideShadow = false;
+
+    if (isOriginPoint || isRootElement) {
+        // Skip ancestor walk, go directly to main scroll container search
+        scrollTarget = findMainScrollContainer();
+    } else {
+        insideShadow = isInsideShadow(el);
+        scrollTarget = findScrollableParent(el);
     }
 
-    const insideShadow = isInsideShadow(el);
-    const scrollTarget = findScrollableParent(el);
-    const result = performScroll(scrollTarget, scrollX, scrollY);
+    // Capture scroll info before and after for diagnostics
+    const scrollBefore = scrollTarget ? { top: scrollTarget.scrollTop || 0, left: scrollTarget.scrollLeft || 0 } : null;
+    let result = performScroll(scrollTarget, scrollX, scrollY);
+    let scrollAfter = scrollTarget ? { top: scrollTarget.scrollTop || 0, left: scrollTarget.scrollLeft || 0 } : null;
+    let usedFallback = false;
+
+    // If scroll didn't work on the found target, try fallback targets
+    if (result === "scroll-no-change") {
+        const fallbackTargets = [
+            document.scrollingElement,
+            document.documentElement,
+            document.body
+        ].filter(t => t && t !== scrollTarget);
+
+        for (const fallback of fallbackTargets) {
+            const fallbackBefore = { top: fallback.scrollTop || 0, left: fallback.scrollLeft || 0 };
+            const fallbackResult = performScroll(fallback, scrollX, scrollY);
+            const fallbackAfter = { top: fallback.scrollTop || 0, left: fallback.scrollLeft || 0 };
+
+            if (fallbackResult !== "scroll-no-change") {
+                result = fallbackResult + "-fallback";
+                scrollAfter = fallbackAfter;
+                usedFallback = true;
+                break;
+            }
+        }
+
+        // Last resort: fire wheel event on scroll target or element under point
+        if (!usedFallback) {
+            simulateWheelEvent(scrollTarget || el || document.body, scrollX, scrollY);
+            result = "wheel-event-dispatched";
+        }
+    }
 
     return {
-        elementUnderPoint: el.tagName,
+        elementUnderPoint: el ? el.tagName : "none",
         insideShadowDOM: insideShadow,
         scrollTarget: scrollTarget ? (scrollTarget.tagName || "shadow-root") : null,
-        result: result
+        scrollTargetClass: scrollTarget?.className || null,
+        canScroll: scrollTarget ? (scrollTarget.scrollHeight > scrollTarget.clientHeight || scrollTarget.scrollWidth > scrollTarget.clientWidth) : false,
+        scrollBefore: scrollBefore,
+        scrollAfter: scrollAfter,
+        result: result,
+        usedFallback: usedFallback,
+        originPointUsed: (x <= 1 && y <= 1)
     };
 }
 
@@ -269,21 +462,12 @@ function typeIntoActiveElement(text, delayMs = 10) {
   });
 }
 
-  function toClientPoint(pageX, pageY) {
-    const zoom = 1;
-    let adjustedX = pageX;
-    let adjustedY = pageY;
-    if (pageX > window.innerWidth || pageY > window.innerHeight) {
-      adjustedX = pageX / zoom;
-      adjustedY = pageY / zoom;
-    }
-
-    const clientX = adjustedX - window.scrollX;
-    const clientY = adjustedY - window.scrollY;
-
+  // Input coordinates are viewport/client coordinates (from screenshot)
+  // They should be used directly without scroll adjustment
+  function toClientPoint(viewportX, viewportY) {
     return {
-      clientX: Math.round(clientX),
-      clientY: Math.round(clientY)
+      clientX: Math.round(viewportX),
+      clientY: Math.round(viewportY)
     };
   }
 
@@ -328,6 +512,16 @@ function typeIntoActiveElement(text, delayMs = 10) {
       ensureFocus(element);
       fireMouse(element, 'mouseup', mouseInit(client, buttonCode || 0, 0));
       fireMouse(element, 'click', init);
+
+      // For links and buttons, also call native click() to ensure navigation/action works
+      // Synthetic events don't always trigger default browser behavior
+      const clickable = element.closest('a, button, [role="button"], [role="link"]') || element;
+      if (clickable && typeof clickable.click === 'function') {
+        try {
+          clickable.click();
+        } catch (e) { /* ignore */ }
+      }
+
       return true;
     },
 

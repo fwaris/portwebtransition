@@ -107,7 +107,7 @@ module UiOps =
 """                
                 let! v2  =
                     match model.driver with
-                    | Some d -> d.scroll (-1,-1 ) (250,0)
+                    | Some d -> d.scroll (-1,-1 ) (0,250)
                     | None  -> async{return()}
                 
                 return ""

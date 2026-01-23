@@ -40,4 +40,5 @@ module Icons =
     let fa_bars = "\uf0c9"
     let fa_reset = "\uf0e2"
     let fa_id_card = "\uf2c2"
+    let fa_test = "\uf0c3"
     
