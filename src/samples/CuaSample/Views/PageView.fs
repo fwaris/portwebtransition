@@ -186,6 +186,7 @@ module PageView =
                     
             }
             
+    let PTR_SZ =30
     let controlsView (model:Model) =
         (AbsoluteLayout() {
             (Browser.view())
@@ -195,14 +196,13 @@ module PageView =
             | None,_ -> ()
             | _, None -> ()
             | Some (x,y),Some wv->
-                Border(
-                    Label("")
-                     .inputTransparent(true)
-                )
-                    .inputTransparent(true)
-                    .stroke(Colors.Red)
-                    .strokeThickness(3.0)
-                    .layoutBounds(x,y,10,10)
+                let left = x - PTR_SZ / 2  |> max 0
+                let top = y - PTR_SZ / 2 |> max 0
+                Ellipse()
+                    .size(PTR_SZ,PTR_SZ)
+                    .fill(Colors.Red)
+                    .opacity(0.3)
+                    .layoutBounds(left,top,PTR_SZ,PTR_SZ)
         })
             .gridRow(1)
             .margin(5.)

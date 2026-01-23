@@ -85,7 +85,7 @@ module MauiWebViewDriver =
             try
               let! raw = MainThread.InvokeOnMainThreadAsync<string>(fun () -> ctx.wrapper.EvaluateJavaScriptAsync(escapeSomeChars script))
                          |> Async.AwaitTask
-              debug $"JS:\n{script}\nResp:\n{raw}"
+              //debug $"JS:\n{script}\nResp:\n{raw}"
               //let str = "\"" + raw + "\""
               //let js = JsonSerializer.Deserialize<JsonElement>(str,flSerOpts.Value)
               return raw

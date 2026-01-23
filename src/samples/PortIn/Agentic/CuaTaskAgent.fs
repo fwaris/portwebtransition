@@ -134,6 +134,7 @@ module CuaTaskAgent =
        let usage = mapUsage resp.Usage
        bus.PostToAgent(Ag_Usage (Map.ofList [resp.ModelId,usage]))        
        let asstMsg = asstMsg resp
+       Some asstMsg |> textContent |> Option.iter (fun t -> debug $"Resp: {t}")
        let funcCalls = extractFunctions asstMsg //there may multiple 'parallel' calls that need to be handled
        let history = asstMsg :: history
        if funcCalls |> List.exists _.IsCua then                                       //handle any cua calls first
