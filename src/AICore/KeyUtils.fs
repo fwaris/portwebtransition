@@ -33,6 +33,7 @@ module KeyUtils =
         |> List.collect split
         |> List.map (fun k ->
             if k =*= "Enter" then K.Enter
+            elif k =*= "Return" then K.Enter
             elif k =*= "space" then " "
             elif k =*= "backspace" then K.Backspace
             elif k =*= "ESC" then K.Escape

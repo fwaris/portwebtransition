@@ -52,7 +52,10 @@ module Plans =
         }
         {   id = Tid "find_camera_case"
             task = Cu_Cua None
-            description = "Find a camera case for iphone 16 max that has built-in screen protector. For all suitable case use `save_summary` tool to save the data."
+            description = """Find at least 3, top rated, cases for the iphone 16 pro max where
+each has a built-in screen protector and a stand.
+Use the `save_summary` tool to save information about the case.
+"""
             toolNames = [ToolName "save_summary"]                       
         }               
     ]
@@ -63,12 +66,35 @@ module Plans =
             description = "introduction"
             toolNames = []
         }
-        {   id = Tid "find_gen_ai_posts"
+        {   id = Tid "find_posts"
             task = Cu_Cua None
-            description = "search for posts related to NeuroSymbolic AI and save the summaries using the `save_summary` tool. Save as soon as you find an interesting post. Scroll down to see relevant posts"
+            description = """"Search for posts related to Neuro-Symbolic AI 
+and save the summaries using the `save_summary` tool.
+Save as soon as you find an interesting post.
+Scroll down the search results to find interesting posts.
+"""
             toolNames = [ToolName "save_summary"]                       
         }        
     ]
+    
+    let twitterTasks2 = [
+        {   id = Tid "intro"
+            task = Cu_Interactive (Some (Target "https://x.com"), "Login, then click Continue")
+            description = "introduction"
+            toolNames = []
+        }
+        {   id = Tid "find_posts"
+            task = Cu_Cua None
+            description = """"Search for posts related to `'Neuro-Symbolic' AI` (make sure to use quotes).
+Click into the posts and scroll down to summarize the thread.
+Click 1st level links if any and gather the content from them also.
+Then save the summary using the `save_summary` tool.
+Scroll down the search results to find interesting posts.
+"""
+            toolNames = [ToolName "save_summary"]                       
+        }        
+    ]   
+    
     
     let redditTasks = [
         {   id = Tid "intro"
@@ -76,17 +102,17 @@ module Plans =
             description = "introduction"
             toolNames = []
         }
-        {   id = Tid "find_gen_ai_posts"
+        {   id = Tid "find_posts"
             task = Cu_Cua None
-            description = """Find posts related to 'neurosymbolic ai'. 
+            description = """Find posts related to 'neuro-symbolic ai'. 
 Make sure to click the 'Ask' button after entering a search term.
-Summarize each thread and the `save_summary` tool to save the thread summary.
+Summarize each thread and use the `save_summary` tool to save the thread summary.
 """
             toolNames = [ToolName "save_summary"]                       
         }               
     ]          
     let testPlan =
-        let tasks = amazonTasks //redditTasks //amazonTasks //twitterTasks
+        let tasks = twitterTasks2 //redditTasks //amazonTasks //twitterTasks
         {
             tasks = tasks |> List.map (fun x ->x.id,x) |> Map.ofList
             flow = FsPlanFlow.Sequential (tasks |> List.map _.id)

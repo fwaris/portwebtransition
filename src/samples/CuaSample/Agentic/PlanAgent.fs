@@ -49,7 +49,7 @@ module PlanAgent =
             startTask state.bus runner |> Async.Start
             return {state with runner = Some runner}
         | Ag_Plan_Done runner ->
-            Log.info $"[PlanAgent] done plan"            
+            Log.info $"[PlanAgent] done plan"
             return {state with runner = None}
         | _ -> return state
     }

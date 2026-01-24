@@ -33,6 +33,7 @@ module Update =
         | Init ->  model, Cmd.ofMsg PostInit
         | TestSomething -> testSomething model; model, Cmd.none
         | PostInit -> installDriver model, Cmd.none
+        | CheckStartFlow -> model, Cmd.ofMsg (if Model.settingsValid() then StartFlow else ViewCreds)
         | StartFlow -> model, Cmd.OfAsync.either UiOps.startStopFlow model SetFlow EventError
         | StopFlow -> model, Cmd.OfAsync.either UiOps.startStopFlow model SetFlow EventError
         | SetFlow f -> {model with flow = f}, Cmd.none
@@ -49,10 +50,9 @@ module Update =
         | BackButtonPressed -> model, Navigation.navigateBack nav
         | Active -> {model with isActive = true},Cmd.none
         | InActive -> {model with isActive = false},Cmd.none
-        | MenuSelect i -> model,Cmd.none
         | FromRunningTask (Agentic.FromAgent.Summary (title,summary)) -> {model with summaries = {Summary=summary; Title=title}::model.summaries},Cmd.none
         | FromRunningTask (Agentic.FromAgent.Preview c) -> postMsgDelayed model PreviewClear |> Async.Start; {model with pointer = c.click; action = Some c.action},Cmd.none
-        | FromRunningTask (Agentic.FromAgent.PlanDone rnr) -> planDone model rnr, Cmd.none
+        | FromRunningTask (Agentic.FromAgent.PlanDone rnr) -> model, Cmd.ofMsg StopFlow
         | FromRunningTask (Agentic.FromAgent.LoadTask(t,r)) -> loadTask model (t,r)
         | PreviewClear -> {model with pointer=None}, Cmd.none
         

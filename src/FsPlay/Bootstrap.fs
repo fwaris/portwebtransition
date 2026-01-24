@@ -643,6 +643,7 @@ function typeIntoActiveElement(text, delayMs = 10) {
         target.dispatchEvent(new KeyboardEvent('keypress', init));
         target.dispatchEvent(new KeyboardEvent('keyup', init));
         if (key === 'Enter') {
+          target.blur();
           target.dispatchEvent(new Event('change', { bubbles: true }));
         }
         return true;

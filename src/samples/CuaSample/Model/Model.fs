@@ -7,28 +7,7 @@ open RTFlow
 
 exception InputKeyExn
 
-type DataPoint = {X:float; Y:float; Label:string option}
-    with member this.ItemLabel with get() = this.Label |> Option.defaultValue ""
-    
-type ChartType = Histogram of float | Bar
-type Chart = {
-    Title : string
-    XTitle : string option
-    YTitle : string option
-    ChartType : ChartType 
-    Values : DataPoint list        
-}
-    with static member Default =
-                    {
-                        Title = ""
-                        XTitle = None
-                        YTitle = None
-                        ChartType = Bar
-                        Values = []
-                    }
-
 type WebviewScroll = {x:float; y:float;}
-
 
 type RunStatus = Init | Stepping | Running | Finished
 
@@ -63,6 +42,7 @@ type Model =
     }
 
 and Msg =
+    | CheckStartFlow
     | StartFlow
     | StopFlow
     | SetFlow of IFlow<FlowMsg,AgentMsg> option
@@ -77,7 +57,6 @@ and Msg =
     | PostInit
     | ViewCreds
     | Nav of Msg
-    | MenuSelect of int
     | ViewSummary   
     | Active
     | InActive

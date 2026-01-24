@@ -21,7 +21,7 @@ module MauiWebViewDriver =
     let private escapeScript_ (rawScript:string) =
     
       rawScript
-        .Replace("\\", "\\\\")     // Escape backslashes first
+        //.Replace("\\", "\\\\")     // Escape backslashes first
         //.Replace("\"", "\\\"")     // Escape double quotes
         .Replace("\r", " ")         // Remove carriage returns
         .Replace("\n", " ");     // Escape newlines

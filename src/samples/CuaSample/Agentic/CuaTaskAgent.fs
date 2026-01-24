@@ -2,7 +2,6 @@ namespace FsPlaySamples.Cua.Agentic
 
 open System.Collections.Generic
 open System.Text.Json
-open Anthropic.SDK.Constants
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.AI
 open Microsoft.Extensions.Configuration
@@ -251,12 +250,14 @@ Answer in the following JSON format:
                 return {state with history = history; cuaLoopCount = state.cuaLoopCount + 1}
             | Ag_Task_Restart context ->
                 let t = state.task |> Option.defaultWith (fun () -> failwith $"[CuaTaskAgent] no task found")
-                Log.info $"[CuaTaskAgent] Re-starting task {t.id}"
+                Log.info $"[CuaTaskAgent] Checking for restart task {t.id}"
                 let! isTaskEnded = isTaskEnded state.bus context state.history
                 if isTaskEnded then
+                    Log.info $"Task is deemed to be done. Ending task."
                     state.bus.PostToAgent Ag_Task_End
                     return state
-                else 
+                else
+                    Log.info "Task is not complete. Restarting task"
                     return! startCuaLoop state context t.description
             | Ag_Task_End when state.task.IsSome ->
                 state.bus.PostToAgent (Ag_Plan_DoneTask {history=state.history; status=Cu_Task_Status.Done; usage=state.usage})

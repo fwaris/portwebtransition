@@ -19,7 +19,7 @@ module UiOps =
     let playMsg (m:Model) =
         m.flow
         |> Option.map(fun r -> StopFlow)
-        |> Option.defaultValue StartFlow        
+        |> Option.defaultValue CheckStartFlow        
         
     let postMsgDelayed model msg = async {
         do! Async.Sleep 1000
@@ -41,15 +41,6 @@ module UiOps =
                   return None
     }    
     
-    let planDone (m:Model) (pr:Runner<Cu_Task,Cu_Task_Output>) =
-        try
-            match m.flow with
-            | Some f -> f.Terminate()
-            | None -> ()
-            {m with flow=None}
-        with ex ->
-            Log.exn(ex,"planDone")
-            m
             
     let loadTask model (t,d) =
         // match t with
@@ -109,7 +100,7 @@ module UiOps =
                 debug $"v = {v}"
                 let! v2 =
                     match model.driver with
-                    | Some d -> d.typeText("Neurosymbolic AI")
+                    | Some d -> d.typeText("Neuro-symbolic AI")
                     | None -> async{return()}
                 return ""
             }
