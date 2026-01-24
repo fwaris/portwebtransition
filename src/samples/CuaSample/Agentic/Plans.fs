@@ -85,11 +85,11 @@ Scroll down the search results to find interesting posts.
         }
         {   id = Tid "find_posts"
             task = Cu_Cua None
-            description = """"Search for posts related to `'Neuro-Symbolic' AI` (make sure to use quotes).
-Click into the posts and scroll down to summarize the thread.
-Click 1st level links if any and gather the content from them also.
-Then save the summary using the `save_summary` tool.
+            description = """"Search for posts related to `Neuro-Symbolic AI`.
+If a post show engagement (likes / replies) then save the post using the `save_summary` tool.
 Scroll down the search results to find interesting posts.
+Use Alt-Left to go back a page, if needed.
+Try to find about 10 summaries.
 """
             toolNames = [ToolName "save_summary"]                       
         }        
