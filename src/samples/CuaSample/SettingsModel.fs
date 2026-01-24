@@ -13,7 +13,7 @@ type SettingsModel() =
             Preferences.Default.Set(C.API_KEY, v)
             this.NotifyChanged()
     member this.PreviewClicks
-        with get() = Preferences.Default.Get<bool>(C.PREVIEW_CLICKS, false)
+        with get() = Preferences.Default.Get<bool>(C.PREVIEW_CLICKS, true)
         and set(v:bool) =            
             Preferences.Default.Set(C.PREVIEW_CLICKS, v)
             this.NotifyChanged()

@@ -74,7 +74,7 @@ module PageView =
         |> Program.withSubscription(subscriptions appMsgDispatcher)
 
     let headerView (model:Model) :WidgetBuilder<Msg,IFabGrid> =
-        (Grid([Dimension.Stars 2.0; Dimension.Stars 1.0;],[Dimension.Absolute 50.0]) {
+        (Grid([Dimension.Star; Dimension.Star],[Dimension.Absolute 50.0]) {
             (HStack(){
                 Button(UiOps.playIcon model, UiOps.playMsg model)
                     .font(size=20.0, fontFamily=C.FA)
@@ -107,18 +107,12 @@ module PageView =
                 .alignStartHorizontal()
                 .gridColumn(0)               
             (HStack(){
-                Button(Icons.fa_test,TestSomething)
-                    .font(size=20.0, fontFamily=C.FA)
-                    .background(Colors.Transparent)
-                    .textColor(Colors.Magenta)
-                    .centerVertical()
-                    .alignStartHorizontal()
-                Button(Icons.settings,ToggleSettings)
-                    .font(size=20.0, fontFamily=C.FONT_SYMBOLS)
-                    .background(Colors.Transparent)
-                    .textColor(Colors.Magenta)
-                    .centerVertical()
-                    .alignStartHorizontal()
+                // Button(Icons.fa_test,TestSomething)
+                //     .font(size=20.0, fontFamily=C.FA)
+                //     .background(Colors.Transparent)
+                //     .textColor(Colors.Magenta)
+                //     .centerVertical()
+                //     .alignStartHorizontal()
                 Button(Icons.fa_bars,ToggleNavBar)
                     .font(size=20.0, fontFamily=C.FA)
                     .background(Colors.Transparent)
@@ -131,34 +125,43 @@ module PageView =
                 .gridColumn(1)                
         })
             .gridRow(0)
-            .background(Colors.LightGray)
+            .background(Colors.Orange)
             .gridColumnSpan(2)
             .margin(3,0,3,0)       
            
-    let navBar (miag:Model) =
-        (VStack() {
-            (Grid([Dimension.Star],[Dimension.Star;Dimension.Star; Dimension.Star; Dimension.Star; Dimension.Star])) {
-                Button(Icons.fa_xmark,ToggleNavBar).font(size=20,fontFamily=C.FA).alignEndHorizontal().margin(10)
-                Button(Icons.fa_table_list,Nav ViewSummary)
-                    .font(size=20.0, fontFamily=C.FA)
-                    .background(Colors.Transparent)
-                    .textColor(Colors.Magenta)
-                    .gridRow(2)
-                Button(Icons.fa_key, Nav ViewCreds)
-                     .font(size=20.0, fontFamily=C.FA)
-                     .background(Colors.Transparent)
-                     .textColor(Colors.Magenta)
-                     .gridRow(3)
-
-            }
-        })
-            .background(Colors.LightGray)
+    let navBar (model:Model) =
+        (Border(
+            (VStack() {
+                (Grid([Dimension.Star],[Dimension.Star;Dimension.Star; Dimension.Star; Dimension.Star; Dimension.Star])) {
+                    Button(Icons.fa_xmark,ToggleNavBar).font(size=20,fontFamily=C.FA).alignEndHorizontal().margin(10)
+                    Button(Icons.fa_table_list,Nav ViewSummary)
+                        .font(size=20.0, fontFamily=C.FA)
+                        .background(Colors.Transparent)
+                        .textColor(Colors.Magenta)
+                        .margin(2)
+                        .gridRow(2)
+                    Button(Icons.fa_key, Nav ViewCreds)
+                         .font(size=20.0, fontFamily=C.FA)
+                         .background(Colors.Transparent)
+                         .textColor(Colors.Magenta)
+                         .margin(2)
+                         .gridRow(3)
+                    (Grid([Dimension.Star; Dimension.Star],[Dimension.Star; Dimension.Star;]) {
+                        Label("Preview Clicks").gridRow(0).margin(2)
+                        (CheckBox(model.settings.PreviewClicks,CheckPreview>>Nav))
+                                .gridRow(0).gridColumn(1).margin(2)                   
+                    }).margin(2,0,0,15).gridRow(4)
+                }
+        })))
+            .background(Colors.Orange)
             .alignStartVertical()
             .alignEndHorizontal()
             .margin(0,5,10,0)
-            .gridRow(1)
+            .gridRow(1)           
+            .padding(2)
             .shadow(Shadow(Brush.Gray, Point(5., 5.)).opacity(0.5).blurRadius(40.))
-            .zIndex(2)
+            .strokeShape(RoundRectangle(CornerRadius(8.)))            
+            .zIndex(2)            
       
     module Browser =
         type Model = {url:Uri}
@@ -195,42 +198,12 @@ module PageView =
                 let top = y - PTR_SZ / 2 |> max 0
                 Ellipse()
                     .size(PTR_SZ,PTR_SZ)
-                    .fill(Colors.Red)
-                    .opacity(0.3)
+                    .fill(Colors.Yellow)
+                    .opacity(0.4)
                     .layoutBounds(left,top,PTR_SZ,PTR_SZ)
         })
             .gridRow(1)
             .margin(5.)
-
-    let popup (model: Model) =
-        (Grid([Dimension.Star], [Dimension.Star]) {
-            Border(
-                VStack(spacing=12.) {
-                    (Grid([Dimension.Star;Dimension.Star],[Dimension.Star]) {
-                        Label("Settings").font(size = 20.).alignStartHorizontal().centerVertical()                        
-                        Button(Icons.fa_xmark, ToggleSettings)
-                            .font(size=20.0, fontFamily=C.FA)
-                            .margin(5,0,0,0)
-                            .alignEndHorizontal()
-                            .centerVertical()
-                            .gridColumn(1)
-                    }).margin(0,0,5,0)                      
-                    (Grid([Dimension.Absolute 200; Dimension.Star],[Dimension.Star; Dimension.Star;]) {
-                        Label("Preview Clicks").gridRow(0).margin(10)
-                        (CheckBox(model.settings.PreviewClicks,CheckPreview))
-                                .gridRow(0).gridColumn(1).margin(10)
-                        Label("Run Count:").gridRow(1).margin(10)
-                    }).margin(5.)
-                })
-                    .background(SolidColorBrush Colors.LightGray)
-                    .padding(10.)
-                    .strokeShape(RoundRectangle(CornerRadius(8.)))
-                    .centerHorizontal()
-                    .centerVertical()
-        })
-            .gridRow(1)
-            .shadow(Shadow(Brush.Gray, Point(5., 5.)).opacity(0.5).blurRadius(40.))
-            .zIndex(10)
             
     let view nav appMsgDispatcher = //: WidgetBuilder<Msg,_> =
         Component("Main") {
@@ -241,7 +214,6 @@ module PageView =
                     (Grid([Dimension.Star],[Dimension.Absolute 53.0; Dimension.Star]) {
                         controlsView model
                         headerView model 
-                        if model.isOpenSettings then popup model
                         if model.isOpenNavBar then navBar model
                     })
                         .margin(5.)

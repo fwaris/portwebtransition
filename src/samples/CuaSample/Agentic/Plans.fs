@@ -60,6 +60,7 @@ Use the `save_summary` tool to save information about the case.
         }               
     ]
     
+    
     let twitterTasks = [
         {   id = Tid "intro"
             task = Cu_Interactive (Some (Target "https://x.com"), "Login, then click Continue")
@@ -68,25 +69,8 @@ Use the `save_summary` tool to save information about the case.
         }
         {   id = Tid "find_posts"
             task = Cu_Cua None
-            description = """"Search for posts related to Neuro-Symbolic AI 
-and save the summaries using the `save_summary` tool.
-Save as soon as you find an interesting post.
-Scroll down the search results to find interesting posts.
-"""
-            toolNames = [ToolName "save_summary"]                       
-        }        
-    ]
-    
-    let twitterTasks2 = [
-        {   id = Tid "intro"
-            task = Cu_Interactive (Some (Target "https://x.com"), "Login, then click Continue")
-            description = "introduction"
-            toolNames = []
-        }
-        {   id = Tid "find_posts"
-            task = Cu_Cua None
             description = """"Search for posts related to `Neuro-Symbolic AI`.
-If a post show engagement (likes / replies) then save the post using the `save_summary` tool.
+If a post show engagement (more than 5 linkes and at least 1 reply) then save the post using the `save_summary` tool.
 Scroll down the search results to find interesting posts.
 Use Alt-Left to go back a page, if needed.
 Try to find about 10 summaries.
@@ -112,7 +96,7 @@ Summarize each thread and use the `save_summary` tool to save the thread summary
         }               
     ]          
     let testPlan =
-        let tasks = twitterTasks2 //redditTasks //amazonTasks //twitterTasks
+        let tasks = twitterTasks //redditTasks //amazonTasks //twitterTasks
         {
             tasks = tasks |> List.map (fun x ->x.id,x) |> Map.ofList
             flow = FsPlanFlow.Sequential (tasks |> List.map _.id)
