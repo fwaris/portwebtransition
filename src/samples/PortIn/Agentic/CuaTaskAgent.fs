@@ -170,7 +170,7 @@ module CuaTaskAgent =
        let cfg = taskContext.aiContext.kernel.GetRequiredService<IConfiguration>()
        let client = AnthropicClient.createClient(cfg)
        let opts = chatOptions Map.empty
-       opts.ModelId <- AnthropicModels.Claude4Opus
+       opts.ModelId <- "claude-opus-4-5-20251101"
        opts.ResponseFormat <- ChatResponseFormat.ForJsonSchema(typeof<Completion>)
        let msg = """Can the original task be considered complete?
 Answer in the following JSON format:

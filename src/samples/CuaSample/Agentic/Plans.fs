@@ -86,7 +86,7 @@ Summarize each thread and the `save_summary` tool to save the thread summary.
         }               
     ]          
     let testPlan =
-        let tasks = twitterTasks //redditTasks //amazonTasks //twitterTasks
+        let tasks = amazonTasks //redditTasks //amazonTasks //twitterTasks
         {
             tasks = tasks |> List.map (fun x ->x.id,x) |> Map.ofList
             flow = FsPlanFlow.Sequential (tasks |> List.map _.id)

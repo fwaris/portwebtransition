@@ -83,7 +83,10 @@ module AppAgent =
         | Ag_Task_End when state.task.IsSome ->
             Log.info $"[AppAgent] interactive task ended"
             state.bus.PostToAgent(Ag_Plan_DoneTask {history=[]; status=Done; usage=Map.empty})
-            return {state with task=None}            
+            return {state with task=None}
+        | Ag_Plan_Done p ->
+            state.poster (FromAgent.PlanDone p)
+            return state
         | _ -> return state    
     }
 

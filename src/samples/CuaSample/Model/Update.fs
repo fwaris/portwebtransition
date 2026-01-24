@@ -55,5 +55,4 @@ module Update =
         | FromRunningTask (Agentic.FromAgent.PlanDone rnr) -> planDone model rnr, Cmd.none
         | FromRunningTask (Agentic.FromAgent.LoadTask(t,r)) -> loadTask model (t,r)
         | PreviewClear -> {model with pointer=None}, Cmd.none
-//        | x -> printfn $"not handled {x}"; model, Cmd.none
         

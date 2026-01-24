@@ -1,6 +1,8 @@
 namespace FsPlaySamples.Cua.Agentic
 
 open System.Collections.Generic
+open System.Text.Json
+open Anthropic.SDK.Constants
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.AI
 open Microsoft.Extensions.Configuration
@@ -133,6 +135,7 @@ module CuaTaskAgent =
        let usage = mapUsage resp.Usage
        bus.PostToAgent(Ag_Usage (Map.ofList [resp.ModelId,usage]))        
        let asstMsg = asstMsg resp
+       Some asstMsg |> textContent |> Option.iter (fun t -> debug $"Resp: {t}")
        let funcCalls = extractFunctions asstMsg //there may multiple 'parallel' calls that need to be handled
        let history = asstMsg :: history
        if funcCalls |> List.exists _.IsCua then                                       //handle any cua calls first
@@ -161,7 +164,25 @@ module CuaTaskAgent =
         let history = if content.IsEmpty then history else ChatMessage(ChatRole.User, content  |> ResizeArray) :: history
         return! sendRequest bus taskContext history
     }
-    
+
+    ///wrap up any pending falls
+    and internal wrapUpFunctionCalls (taskContext:TaskContext) history (nonCuaCalls:CallType list) (cuaResults:AIContent list) = async {
+        let! nonCuaResults = 
+            nonCuaCalls
+            |> List.choose (function CallType.NonCua f -> Some f | _ -> None)
+            |> AsyncSeq.ofSeq
+            |> AsyncSeq.mapAsync (invokeFunction taskContext.aiContext.toolsCache)
+            |> AsyncSeq.toListAsync
+        let invalidCallResults = 
+            nonCuaCalls
+            |> List.choose (function CallType.Invalid (a,b) -> Some (a,b) | _ -> None)
+            |> List.map (fun (m,call) -> FunctionResultContent(call.CallId,m) :> AIContent)
+        let content = nonCuaResults @ invalidCallResults @ cuaResults
+        let history = if content.IsEmpty then history else ChatMessage(ChatRole.User, content  |> ResizeArray) :: history
+        return history
+    }
+        
+        
     let handleRemainingCalls (bus: CuaBus)  context funcCalls = 
         match funcCalls with 
         | [] -> bus.PostToAgent (Ag_Task_Restart context)        //no computer call so restart task  
@@ -174,6 +195,33 @@ module CuaTaskAgent =
             state.bus.PostToAgent(Ag_App_ComputerCall (funcCalls,None)) 
         return {state with history = history; cuaLoopCount=0}        
     }
+    
+    type Completion = {taskComplete:bool}
+    
+    let isTaskEnded (bus:CuaBus) (taskContext:TaskContext) (history:ChatMessage list) = async {
+       let cfg = taskContext.aiContext.kernel.GetRequiredService<IConfiguration>()
+       let client = AnthropicClient.createClient(cfg)
+       let opts = chatOptions Map.empty
+       opts.ModelId <- "claude-opus-4-5-20251101"
+       opts.ResponseFormat <- ChatResponseFormat.ForJsonSchema(typeof<Completion>)
+       let msg = """Can the original task be considered complete?
+Answer in the following JSON format:
+```
+{
+    taskComplete : true | false
+}
+```
+"""
+       let history = ChatMessage(ChatRole.User,msg)::history
+       let! resp = client.GetResponseAsync(List.rev history, opts) |> Async.AwaitTask
+       let usage = mapUsage resp.Usage
+       bus.PostToAgent(Ag_Usage (Map.ofList [resp.ModelId,usage]))        
+       let asstMsg = asstMsg resp
+       let text = textContent (Some asstMsg) |> Option.defaultWith (fun _ -> failwith "code not found")
+       let code = AIUtils.extractCode text
+       let comp = JsonSerializer.Deserialize<Completion>(code)
+       return comp.taskComplete
+    }     
        
     let internal update (state:State) cuaMsg =
         async {
@@ -190,8 +238,11 @@ module CuaTaskAgent =
                 return {state with usage=Map.empty; task=Some t} //reset usage for a new task
             | Ag_Task_Continue cr when state.cuaLoopCount >= MAX_CUA_LOOP ->
                 Log.info $"[CuaTaskAgent] max cua loop count exceeded {state.cuaLoopCount}. Restarting task"
+                let pending = cr.pendingCalls
+                let handled = cr.results
+                let! history = wrapUpFunctionCalls cr.context state.history pending handled                
                 state.bus.PostToAgent (Ag_Task_Restart cr.context)
-                return state
+                return {state with history=history}
             | Ag_Task_Continue cr ->
                 let pending = cr.pendingCalls
                 let handled = cr.results
@@ -201,7 +252,12 @@ module CuaTaskAgent =
             | Ag_Task_Restart context ->
                 let t = state.task |> Option.defaultWith (fun () -> failwith $"[CuaTaskAgent] no task found")
                 Log.info $"[CuaTaskAgent] Re-starting task {t.id}"
-                return! startCuaLoop state context t.description 
+                let! isTaskEnded = isTaskEnded state.bus context state.history
+                if isTaskEnded then
+                    state.bus.PostToAgent Ag_Task_End
+                    return state
+                else 
+                    return! startCuaLoop state context t.description
             | Ag_Task_End when state.task.IsSome ->
                 state.bus.PostToAgent (Ag_Plan_DoneTask {history=state.history; status=Cu_Task_Status.Done; usage=state.usage})
                 Log.info $"[CuaTaskAgent] Ending task {state.task |> Option.map (fun x -> x.id.id) |> Option.defaultValue String.Empty}"                
