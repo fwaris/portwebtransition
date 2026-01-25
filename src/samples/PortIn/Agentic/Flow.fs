@@ -1,6 +1,6 @@
 namespace FsPlaySamples.PortIn.Agentic
 open System.Threading
-open AICore
+open FsAICore
 open FsPlay.Abstractions
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection

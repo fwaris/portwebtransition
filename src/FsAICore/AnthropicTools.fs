@@ -1,9 +1,11 @@
-namespace AICore.Anthropic
-
+namespace FsAICore.Anthropic
+(*
+Tooling need to support computer use agent with Anthropic
+*)
 open System
-open AICore
 open System.Text.Json.Serialization
 open Anthropic.SDK.Messaging
+open FsAICore
 open Microsoft.Extensions.AI
 open System.Text.Json
 

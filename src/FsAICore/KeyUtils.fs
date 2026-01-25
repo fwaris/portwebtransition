@@ -1,4 +1,4 @@
-namespace AICore
+namespace FsAICore
 
 module K = 
     let [<Literal>] Enter = "Enter"

@@ -7,7 +7,7 @@ open System.Net.Http
 open System.Text.Encodings.Web
 open System.Text.Json
 open System.Threading.Tasks
-open AICore
+open FsAICore
 open Microsoft.Maui.ApplicationModel
 open FsPlay.Abstractions
 open Microsoft.Maui.Devices

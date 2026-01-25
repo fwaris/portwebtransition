@@ -1,5 +1,5 @@
 ﻿namespace RTFlow.Functions
-open AICore
+open FsAICore
 open RTFlow
 open Microsoft.SemanticKernel
 open System.ComponentModel

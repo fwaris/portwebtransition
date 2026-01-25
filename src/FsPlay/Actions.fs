@@ -1,6 +1,6 @@
 namespace FsPlay
 
-open AICore
+open FsAICore
 open FsPlay.Abstractions
 
 module Actions =

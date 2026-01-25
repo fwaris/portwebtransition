@@ -72,8 +72,8 @@ module UiOps =
     
     let toRunSteps (s:string) = match Double.TryParse s with true,v->v | _ -> 1.0
     
-    let mergeValues (model:Model) (us:AICore.UsageMap)  =
-        {model with usage = AICore.Usage.combineUsage model.usage us}           
+    let mergeValues (model:Model) (us:FsAICore.UsageMap)  =
+        {model with usage = FsAICore.Usage.combineUsage model.usage us}           
     
 
     let installDriver (model:Model) =

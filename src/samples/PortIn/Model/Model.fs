@@ -76,7 +76,7 @@ type Model =
         isOpenNavBar    : bool
         runSteps        : int
         flow            : IFlow<FlowMsg,AgentMsg> option
-        usage           : AICore.UsageMap
+        usage           : FsAICore.UsageMap
         lastError       : string option
         driver          : IUIDriver option
     }
@@ -122,16 +122,16 @@ module Model =
         
     let rec startPlan driver previewActions poster = async {
         let cfg = Utils.configuration.Value
-        cfg.[AICore.ConfigKeys.ANTHROPIC_API_KEY] <- Settings.Environment.apiKey()
+        cfg.[FsAICore.ConfigKeys.ANTHROPIC_API_KEY] <- Settings.Environment.apiKey()
         let bus = CuaBus.Create()
         let vz = ref VzState.Default
         let poster = Plans.interceptor vz bus poster
         
-        let context : AICore.AIContext = {
-            backend = AICore.AIBackend.AnthropicLike
+        let context : FsAICore.AIContext = {
+            backend = FsAICore.AIBackend.AnthropicLike
             kernel = Utils.services.Value
             jsonSerializationOptions = None
-            toolsCache = AICore.Toolbox.makeTools None [ Agentic.AccountTools(poster) ]
+            toolsCache = FsAICore.Toolbox.makeTools None [ Agentic.AccountTools(poster) ]
             optionsConfigurator = None
         }
         

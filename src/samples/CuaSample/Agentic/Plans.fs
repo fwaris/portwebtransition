@@ -1,6 +1,6 @@
 namespace FsPlaySamples.Cua.Agentic
 
-open AICore
+open FsAICore
 open FsPlaySamples.Cua
 open System
 open System.ComponentModel

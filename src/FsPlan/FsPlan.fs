@@ -1,7 +1,7 @@
 namespace FsPlan
 
 open System
-open AICore
+open FsAICore
 open System.Text.Json
 open Microsoft.Extensions.AI
 

@@ -1,4 +1,4 @@
-﻿namespace AICore
+﻿namespace FsAICore
 open System
 open System.IO
 open System.Text.Json

@@ -1,6 +1,6 @@
 namespace FsPlaySamples.PortIn.Agentic
 
-open AICore
+open FsAICore
 open FsPlan
 open Microsoft.Extensions.AI
 open RTFlow
@@ -22,15 +22,6 @@ type Cu_Task_Status = Done | Error of string
 type Cu_Task_Output = {history:ChatMessage list; usage:UsageMap; status:Cu_Task_Status}
     
 type ActionPreview = {click:(int*int) option; action:string}
-[<RequireQualifiedAccess>]
-type CallType = 
-    | Cua of Action list*FunctionCallContent
-    | NonCua of FunctionCallContent
-    | Invalid of string*FunctionCallContent
-
-type TaskContext = {screenDimensions:int*int; aiContext:AIContext }
-    with static member Default = {screenDimensions=0,0; aiContext=AIContext.Default }
-type CallsResult = {Handled:AIContent list; Pending:CallType list; taskContext:TaskContext}
          
 [<RequireQualifiedAccess>]
 type FromAgent =

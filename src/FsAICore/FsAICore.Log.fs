@@ -1,4 +1,4 @@
-namespace AICore
+namespace FsAICore
 
 open System
 open Microsoft.Extensions.Logging

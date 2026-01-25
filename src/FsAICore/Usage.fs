@@ -1,4 +1,4 @@
-namespace AICore
+namespace FsAICore
 
 type Usage = {input_tokens:int; output_tokens:int; total_tokens:int}
     with

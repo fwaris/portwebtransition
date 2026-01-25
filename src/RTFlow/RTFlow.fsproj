@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AICore\AICore.fsproj" />
+      <ProjectReference Include="..\FsAICore\FsAICore.fsproj" />
     </ItemGroup>
 
 </Project>

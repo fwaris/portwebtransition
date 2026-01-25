@@ -1,6 +1,6 @@
 namespace FsPlaySamples.PortIn.Agentic
 
-open AICore
+open FsAICore
 open FSharp.Control
 open FsPlan
 open FsPlay.Abstractions
@@ -53,18 +53,11 @@ module AppAgent =
         let results = results @ [screenContent] //append latest screenshot after performing actions
         return results,dims
     }
-    
-    let splitCalls funcCalls = 
-        (([],[]),funcCalls)
-        ||> List.fold (fun (accCua,accOth) call ->
-            match call with 
-            | CallType.Cua (a,c) -> (a,c)::accCua,accOth
-            | x                  -> accCua,x::accOth)
-        
+            
     let internal update (state:State) msg = async {
         match msg with
         | Ag_App_ComputerCall (callTypes,msg) ->
-            let (cuaCalls,pendingCalls) = splitCalls callTypes
+            let (cuaCalls,pendingCalls) = CuaLoop.splitCalls callTypes
             let! results,dims = performActions state cuaCalls
             let ctx = {screenDimensions=dims; aiContext=state.aiContext}            
             state.bus.PostToAgent(Ag_Task_Continue {|results=results; pendingCalls=pendingCalls; context=ctx |})                                 
@@ -86,7 +79,10 @@ module AppAgent =
         | Ag_Task_End when state.task.IsSome ->
             Log.info $"[AppAgent] interactive task ended"
             state.bus.PostToAgent(Ag_Plan_DoneTask {history=[]; status=Done; usage=Map.empty})
-            return {state with task=None}            
+            return {state with task=None}
+        | Ag_Plan_Done p ->
+            state.poster (FromAgent.PlanDone p)
+            return state            
         | _ -> return state    
     }
 
@@ -105,3 +101,4 @@ module AppAgent =
         |> AsyncSeq.scanAsync update st0
         |> AsyncSeq.iter(fun _ -> ())
         |> FlowUtils.catch bus.PostToFlow
+        

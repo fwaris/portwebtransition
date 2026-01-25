@@ -1,4 +1,4 @@
-namespace AICore
+namespace FsAICore
 
 type Point = {x:int; y:int}
 type Path = {

@@ -1,6 +1,6 @@
 namespace FsPlaySamples.PortIn.Agentic
 
-open AICore
+open FsAICore
 open FsPlaySamples.PortIn
 open System.ComponentModel
 open Microsoft.SemanticKernel
@@ -189,7 +189,7 @@ Scroll down a few times in search results to find page as may be distractive, fi
 
     /// Create the PortIn plan with tasks in sequence
     let createPortInPlan (cfg:PlanConfig) =
-        let inset = set [Tid "login"; Tid "transfer_pin"]//; Tid "account_zip"]
+        let inset = set [Tid "login"; Tid "transfer_pin"; Tid "account_zip"]
         let tasks = createPortInTasks cfg
         let tasks = tasks |> List.filter  (fun x -> inset.Contains x.id)        
         let taskSequence = tasks |> List.map _.id

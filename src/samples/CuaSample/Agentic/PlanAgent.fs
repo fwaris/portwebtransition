@@ -1,6 +1,6 @@
 namespace FsPlaySamples.Cua.Agentic
 
-open AICore
+open FsAICore
 open FSharp.Control
 open FsPlan
 open FsPlay.Abstractions

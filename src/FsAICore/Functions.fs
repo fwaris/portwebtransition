@@ -1,8 +1,7 @@
-namespace AICore.Functions
+namespace FsAICore.Functions
 
 open System
-open System.IO
-open AICore
+open FsAICore
 open Microsoft.SemanticKernel
 open System.ComponentModel
 open System.Text.Json
