@@ -23,7 +23,7 @@
         <PackageReference Include="Anthropic.SDK" />
         <PackageReference Include="FSharp.Control.AsyncSeq" />
         <PackageReference Include="FSharp.SystemTextJson" />
-        <!-- <PackageReference Include="Microsoft.Extensions.AI.OpenAI" /> -->
+        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
         <PackageReference Include="Microsoft.Extensions.Logging" />
         <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" />

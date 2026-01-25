@@ -77,13 +77,15 @@ module CuaTaskAgent =
                 return {state with history = history; cuaLoopCount = state.cuaLoopCount + 1}
             | Ag_Task_Restart context when state.task.IsSome ->
                 let t = state.task |> Option.defaultWith (fun () -> failwith $"[CuaTaskAgent] no task found")
-                Log.info $"[CuaTaskAgent] Re-starting task {t.id}"
-                let! isTaskEnded = CuaLoop.isTaskEnded (Ag_Usage>>state.bus.PostToAgent) context state.history None
-                if isTaskEnded then
+                Log.info $"[CuaTaskAgent] Checking for restart task {t.id}"
+                let! compRslt = CuaLoop.isTaskEnded (Ag_Usage>>state.bus.PostToAgent) context state.history None
+                if compRslt.taskComplete then
+                    Log.info $"Task is deemed to be done. Ending task. Reason:\n{compRslt.reason}"
                     state.bus.PostToAgent Ag_Task_End
                     return state
-                else 
-                    return! startCuaLoop state context t.description 
+                else
+                    Log.info $"Task is not complete. Restarting task. Reason:\n{compRslt.reason}"
+                    return! startCuaLoop state context t.description
             | Ag_Task_End when state.task.IsSome ->
                 state.bus.PostToAgent (Ag_Plan_DoneTask {history=state.history; status=Cu_Task_Status.Done; usage=state.usage})
                 Log.info $"[CuaTaskAgent {state.cuaLoopCount}] Ending task {state.task |> Option.map (fun x -> x.id.id) |> Option.defaultValue String.Empty}"                

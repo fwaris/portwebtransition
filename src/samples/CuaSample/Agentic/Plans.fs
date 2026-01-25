@@ -70,10 +70,10 @@ Use the `save_summary` tool to save information about the case.
         {   id = Tid "find_posts"
             task = Cu_Cua None
             description = """"Search for posts related to `Neuro-Symbolic AI`.
-If a post show engagement (more than 5 linkes and at least 1 reply) then save the post using the `save_summary` tool.
+If a post show engagement (more than 5 likes and at least 1 reply) then save the post using the `save_summary` tool.
 Scroll down the search results to find interesting posts.
 Use Alt-Left to go back a page, if needed.
-Try to find about 10 summaries.
+Try to find about 5 summaries.
 """
             toolNames = [ToolName "save_summary"]                       
         }        

@@ -197,9 +197,8 @@ Answer in the following JSON format:
        let text = textContent (Some asstMsg) |> Option.defaultWith (fun _ -> failwith "code not found")
        let code = AIUtils.extractCode text
        let comp = JsonSerializer.Deserialize<Completion>(code)
-       return comp.taskComplete
+       return comp
     }     
-
     
     let splitCalls funcCalls = 
         (([],[]),funcCalls)
