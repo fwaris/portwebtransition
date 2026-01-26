@@ -19,7 +19,16 @@
 		<TargetPlatformMinVersion Condition="$(TargetPlatformIdentifier) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$(TargetPlatformIdentifier) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
-
+	
+	<PropertyGroup>
+		<PackageId>FsPlay</PackageId>
+		<Description>Maui library for programmatically controlling mobile embedded browsers, e.g. via a computer-use-agent</Description>
+		<Authors>Faisal Waris</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>AI</PackageTags>
+		<RepositoryUrl>https://github.com/fwaris/RTOpenAI</RepositoryUrl>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<Compile Include="ServiceEvents.fs" />
 		<Compile Include="Bootstrap.fs" />

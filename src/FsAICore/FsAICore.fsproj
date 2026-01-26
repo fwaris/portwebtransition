@@ -3,9 +3,18 @@
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <RootNamespace>AICore</RootNamespace>
+        <RootNamespace>FsAICore</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <PackageId>FsAICore</PackageId>
+        <Description>Utility AI functions shared by multiple packages</Description>
+        <Authors>Faisal Waris</Authors>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>        
+        <PackageTags>AI;utilities</PackageTags>
+        <RepositoryUrl>https://github.com/fwaris/RTOpenAI</RepositoryUrl>
+    </PropertyGroup>
+    
     <ItemGroup>
         <Compile Include="FsAICore.Log.fs" />
         <Compile Include="Utils.fs" />

@@ -6,6 +6,15 @@
     <RootNamespace>DriverAbstractions</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>FsPlay.Abstractions</PackageId>
+    <Description>Absractions for FsPlay</Description>
+    <Authors>Faisal Waris</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>AI;utilities</PackageTags>
+    <RepositoryUrl>https://github.com/fwaris/RTOpenAI</RepositoryUrl>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="FsPlay.Abstractions.fs" />
   </ItemGroup>
