@@ -11,7 +11,9 @@
     <PackageVersion Include="FSharp.Maui.WinUICompat" Version="1.1.0" />
     <PackageVersion Include="FSharp.SystemTextJson" Version="1.4.36" />
     <PackageVersion Include="Fabulous.MauiControls" Version="9.0.0-pre9" />
-    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.2.0-preview.1.26063.2" /> 
+    <PackageVersion Include="FsPlan" Version="0.9.0.1" />
+    <PackageVersion Include="FsPlay" Version="0.9.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.2.0-preview.1.26063.2" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
@@ -19,12 +21,8 @@
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.30" />
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.30" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.70.0" />
+    <PackageVersion Include="RTFlow" Version="0.9.0.1" />
     <PackageVersion Include="Syncfusion.Maui.Toolkit" Version="1.0.8" />
-    <PackageVersion Include="System.Net.Http" Version="4.3.4" />
-    <PackageVersion Include="System.Net.Primitives" Version="4.3.1" />
-    <PackageVersion Include="System.Net.Security" Version="4.3.2" />
-    <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
-    <PackageVersion Include="System.Text.Json" Version="10.0.2" />
-    <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
+
   </ItemGroup>
 </Project>

@@ -15,7 +15,7 @@ In the ***linear*** flow the tasks are executed sequentially.
 
 For the ***graph*** flow, there is [graph](/src/FsPlan/FsPlan.fs#l24) with a *root* task and a [transition](/src/FsPlan/FsPlan.fs#l17) map. When a task is done and there are outgoing tasks available, the execution passes to the one of the available outgoing tasks. The transition decision is made with the help of a LLM. The transition 'prompt' can be defined as part of the [transition](/src/FsPlan/FsPlan.fs#l17) structure.
 
-> Note: The transition mechanism has not been fully tested yet.
+> Note: The graph transition mechanism has not been fully tested yet.
 
 FsPlan was designed to work with FsPlay, described next, but can also be used independently.
 
@@ -49,10 +49,12 @@ Fortunately, mobile web browsers running in either the IOS simulator; a MacCatal
 
 Note: The injected script can be seen in Safari dev tools *Sources* tab under 'User Scripts' but they are not easily visible in Chrome/Edge. An option to locate the script in Chrome/Edge is to enter `window.__fsDriver` in the console. This will allow you to inspect the JavaScript object to which the bootstrap functions are attached. From there you can get to the source and add a breakpoint, etc..
 
-# CuaSample
-Included in the repo is a CUA sample app that shows how FsPlan, FsPlay and RTFlow can be combined to execute a plan. Several example plans are included in the sample. See the [readme](/src/samples/CuaSample/readme.md) of the sample for more details.
+Note: [RTFlow](/src/RTFlow/readme.md) is a real-time, multi-agent library that can be used to implement task execution with multiple collaborating agents. RTFlow is not strictly required but the CuaSample (see next) app uses it nonetheless.
 
-Note: [RTFlow](/src/RTFlow/readme.md) is a real-time, multi-agent library that can be used to implement task execution with multiple collaborating agents. RTFlow is not strictly required but the CuaSample app uses it nonetheless. 
+# Samples
+Use the 'Samples solution for the CuaSample included in the repo. Maui build times for Release builds for apps (not libraries) is long. For this reason, the sample has been moved to its own solution. 
+
+CuaSample shows how FsPlan, FsPlay and RTFlow can be combined to execute a plan. Several example plans are included in the sample. See the [readme](/src/samples/CuaSample/readme.md) of the sample for more details.
 
 
 
